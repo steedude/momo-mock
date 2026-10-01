@@ -93,6 +93,8 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 Agent 參與的提交附 `Co-authored-by: Codex <noreply@openai.com>`；詳細內容在協作紀錄，不只共同作者署名。功能分為 `e7a4a79` 商品卡與嵌入、`50811e4` 編輯與儲存，再補驗收文件。
 
+第二輪 `91790ba` 依使用者回饋補齊卡片資訊、Tailwind 與已儲存內容的 HTML 複製，並修正 sample 開發路徑及快取；獨立驗證副本通過 89 案例及正式建置。
+
 原始準備歷史保留：`8dad3b4` 於 2026-10-01 12:06:53、`cc5c0f3` 於 12:23:24（Asia/Taipei）。功能實作於同日 13:38 開始；完成時間見協作紀錄。考題從 First Commit 起算的採認由出題方決定，不能假定準備提交一定排除。
 
 origin 為 `git@github.com:steedude/momo-mock.git`。交付可選 GitHub 指定最終 commit 並確認評估者權限，或提供含完整 `.git` 的 Zip／原始碼加完整 Git bundle。僅檔案快照或文字 log 不算 Git History；尚未推送的本機成果不能當作已交付的遠端版本。
