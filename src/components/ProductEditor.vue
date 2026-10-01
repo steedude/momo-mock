@@ -55,7 +55,7 @@ function update(field: keyof ProductDraft, event: Event) {
             {{ rating }}
           </option>
         </select>
-        <input v-else :id="`product-${field}`" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm leading-6 text-zinc-800 outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100 aria-invalid:border-rose-500" :value="draft[field]" :inputmode="NUMBER_RULES[field].decimals ? 'decimal' : 'numeric'" :aria-required="field === 'price'" :aria-invalid="!!errors[field]" :aria-describedby="`${field}-hint`" @input="update(field, $event)" @compositionend="update(field, $event)">
+        <input v-else :id="`product-${field}`" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm leading-6 text-zinc-800 outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100 aria-invalid:border-rose-500" :value="draft[field]" inputmode="numeric" :aria-required="field === 'price'" :aria-invalid="!!errors[field]" :aria-describedby="`${field}-hint`" @input="update(field, $event)" @compositionend="update(field, $event)">
         <p v-if="field !== 'rating'" :id="`${field}-hint`" class="mt-1.5 text-xs leading-5" :class="errors[field] ? 'text-rose-700' : 'text-zinc-500'">
           {{ t(field === 'price' || field === 'originalPrice' ? 'editor.moneyHint' : 'editor.countHint', { max: NUMBER_RULES[field].max.toLocaleString('zh-TW') }) }}
           {{ field === 'originalPrice' ? t('editor.originalPriceHint') : '' }}

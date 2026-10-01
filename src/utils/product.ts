@@ -3,19 +3,19 @@ import { NUMBER_RULES, RATING_OPTIONS, TEXT_LIMITS } from '../configs/productRul
 import { ValidationCode } from '../types/product'
 
 export function textLength(value: string): number {
+  // 與輸入截字共用字元算法，避免把 emoji 的代理對切成兩半。
   return Array.from(value).length
 }
 
-function validNumber(value: unknown, rule: { min: number, max: number, decimals: number }): value is number {
-  return typeof value === 'number' && Number.isFinite(value)
+function validNumber(value: unknown, rule: { min: number, max: number }): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value)
     && value >= rule.min && value <= rule.max
-    && (rule.decimals === 0 ? /^\d+$/ : new RegExp(`^\\d+(?:\\.\\d{1,${rule.decimals}})?$`)).test(String(value))
 }
 
 function validNumericInput(value: string, field: keyof typeof NUMBER_RULES): boolean {
   const rule = NUMBER_RULES[field]
-  const pattern = rule.decimals === 0 ? /^\d+$/ : new RegExp(`^\\d+(?:\\.\\d{0,${rule.decimals}})?$`)
-  return pattern.test(value) && Number(value) >= rule.min && Number(value) <= rule.max
+  // 先檢查原始字串，避免 Number 接受科學記號或十六進位。
+  return /^\d+$/.test(value) && validNumber(Number(value), rule)
 }
 
 export function normalizeProductInput(field: keyof ProductDraft, value: string, previous: string): string {

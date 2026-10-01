@@ -6,6 +6,7 @@ import { parseProduct } from './product'
 export function createProductStorage(source: () => Pick<Storage, 'getItem' | 'setItem'> = () => window.localStorage) {
   return {
     load(): LoadResult {
+      // 讀取失敗只回報原因，保留原存檔供使用者決定是否取代。
       let raw: string | null
       try {
         raw = source().getItem(STORAGE_KEY)

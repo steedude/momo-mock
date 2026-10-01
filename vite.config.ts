@@ -19,6 +19,7 @@ export default defineConfig({
           return
         }
         try {
+          // 直接提供最新建置檔，避免開發伺服器重新轉換嵌入產物。
           const file = readFileSync(new URL(`./dist${path}`, import.meta.url))
           response.setHeader('Content-Type', path.endsWith('.css') ? 'text/css' : 'text/javascript')
           response.setHeader('Cache-Control', 'no-store')
