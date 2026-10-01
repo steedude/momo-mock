@@ -70,3 +70,5 @@
 - 第二輪提交與驗證：`91790ba`，Husky 的 lint-staged／vue-tsc 通過，附 Codex 共同作者署名。將無工作目錄變更的獨立驗證副本快轉至此 commit，frozen-lockfile 檢查、89 案例與兩入口建置通過。正式 sample 掛載／移除後宿主按鈕仍為 Georgia、0px 圓角及 rgb(38,53,71)，未出現 console error／warn。
 
 - 第三輪精簡：依使用者要求移除瀏覽器儲存頁尾及 sample 掛載／移除操作區；保留嵌入 API。商品卡與 sample 改用模板內 Tailwind classes，移除所有 @apply，使用 mc: 前綴避免一般類名衝突。型別檢查與兩入口建置通過，瀏覽器確認兩處文案／控制項已移除及卡片呈現；本次純樣式與文案調整不重跑整套測試，提交留待整批收尾。
+
+- 可讀性整理：使用者確認盤點中的前四項並要求推送。限制編輯器只能更新四個字串欄位；明確命名 saveStatus、hasAttemptedSave、savedDraftBaseline；商品卡以 computed 整理價格呈現與星等寬度；展開 Showroom 回傳介面。保留三種商品型別及既有行為，沿用原四個測試檔，89 案例與型別檢查、兩入口建置通過。

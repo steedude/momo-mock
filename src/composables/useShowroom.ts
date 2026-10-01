@@ -13,38 +13,38 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
   const lastSaved = ref<Product | null>(loaded.ok ? loaded.value : null)
   const initial = { ...defaultProduct(typeof document === 'undefined' ? 'http://localhost/' : document.baseURI), ...lastSaved.value }
   const draft = ref<ProductDraft>({ ...initial, price: String(initial.price) })
-  const baseline = ref(lastSaved.value ? { ...lastSaved.value, price: String(lastSaved.value.price) } : { ...draft.value })
-  const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(baseline.value))
+  const savedDraftBaseline = ref(lastSaved.value ? { ...lastSaved.value, price: String(lastSaved.value.price) } : { ...draft.value })
+  const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraftBaseline.value))
   const preview = computed(() => previewProduct(draft.value))
-  const status = ref(SaveStatus.Idle)
+  const saveStatus = ref(SaveStatus.Idle)
   const copyStatus = ref(CopyStatus.Idle)
-  const attempted = ref(false)
+  const hasAttemptedSave = ref(false)
   const errors = computed<ValidationErrors>(() => {
     const parsed = parseDraft(draft.value)
-    return attempted.value && !parsed.ok ? parsed.errors : {}
+    return hasAttemptedSave.value && !parsed.ok ? parsed.errors : {}
   })
 
   function patchDraft(patch: Partial<ProductDraft>) {
     draft.value = { ...draft.value, ...patch }
-    status.value = SaveStatus.Idle
+    saveStatus.value = SaveStatus.Idle
   }
 
   function save() {
-    attempted.value = true
+    hasAttemptedSave.value = true
     const parsed = parseDraft(draft.value)
     if (!parsed.ok) {
-      status.value = SaveStatus.Invalid
+      saveStatus.value = SaveStatus.Invalid
       return false
     }
     const result = storage.save(parsed.value)
     if (!result.ok) {
-      status.value = SaveStatus.Failed
+      saveStatus.value = SaveStatus.Failed
       return false
     }
     lastSaved.value = { ...parsed.value }
-    baseline.value = { ...draft.value }
+    savedDraftBaseline.value = { ...draft.value }
     loadWarning.value = null
-    status.value = SaveStatus.Saved
+    saveStatus.value = SaveStatus.Saved
     copyStatus.value = CopyStatus.Idle
     return true
   }
@@ -70,5 +70,20 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
     }
   }
 
-  return { draft: readonly(draft), lastSaved: readonly(lastSaved), loadWarning: readonly(loadWarning), dirty, preview, errors, status: readonly(status), copyStatus: readonly(copyStatus), patchDraft, save, exportHtml, copyHtml }
+  return {
+    draft: readonly(draft),
+    lastSaved: readonly(lastSaved),
+    preview,
+
+    loadWarning: readonly(loadWarning),
+    dirty,
+    errors,
+    saveStatus: readonly(saveStatus),
+    copyStatus: readonly(copyStatus),
+
+    patchDraft,
+    save,
+    exportHtml,
+    copyHtml,
+  }
 }

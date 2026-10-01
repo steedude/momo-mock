@@ -2,11 +2,13 @@
 import type { ProductDraft, ValidationErrors } from '../types/product'
 import { useI18n } from 'vue-i18n'
 
+type EditableFields = Pick<ProductDraft, 'name' | 'imageUrl' | 'price' | 'promotion'>
+
 defineProps<{ draft: Readonly<ProductDraft>, errors: ValidationErrors }>()
-const emit = defineEmits<{ patch: [value: Partial<ProductDraft>], save: [] }>()
+const emit = defineEmits<{ patch: [value: Partial<EditableFields>], save: [] }>()
 const { t } = useI18n()
 
-function update(field: keyof ProductDraft, event: Event) {
+function update(field: keyof EditableFields, event: Event) {
   emit('patch', { [field]: (event.target as HTMLInputElement | HTMLTextAreaElement).value })
 }
 </script>

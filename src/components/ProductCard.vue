@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ProductPreview } from '../types/product'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import '../card.css'
@@ -8,6 +8,20 @@ import '../card.css'
 const props = defineProps<{ product: ProductPreview }>()
 const { t } = useI18n()
 const imageFailed = ref(false)
+const formattedPrice = computed(() => {
+  const { price } = props.product
+  return price !== null && Number.isFinite(price) && price >= 0
+    ? price.toLocaleString('zh-TW', { maximumFractionDigits: 20 })
+    : null
+})
+const formattedOriginalPrice = computed(() => {
+  const { originalPrice, price } = props.product
+  return originalPrice !== undefined && price !== null && originalPrice > price
+    ? originalPrice.toLocaleString('zh-TW')
+    : null
+})
+const ratingWidth = computed(() => `${(props.product.rating ?? 0) / 5 * 100}%`)
+
 watch(() => props.product.imageUrl, () => {
   imageFailed.value = false
 })
@@ -28,15 +42,15 @@ watch(() => props.product.imageUrl, () => {
       </h2>
       <div class="momo-card__prices mc:mt-[8px] mc:flex mc:flex-wrap mc:items-baseline mc:gap-[8px]">
         <p class="momo-card__price mc:m-0 mc:text-[22px] mc:[font-weight:400] mc:[line-height:1.2] mc:text-[#ed1675]" data-testid="price">
-          <template v-if="product.price !== null && Number.isFinite(product.price) && product.price >= 0">
-            ${{ product.price.toLocaleString('zh-TW', { maximumFractionDigits: 20 }) }}
+          <template v-if="formattedPrice !== null">
+            ${{ formattedPrice }}
           </template>
           <span v-else class="momo-card__placeholder mc:text-[14px] mc:text-[#8a7781]">{{ t('card.pendingPrice') }}</span>
         </p>
-        <del v-if="product.originalPrice !== undefined && product.price !== null && product.originalPrice > product.price" class="mc:text-[12px] mc:text-[#92959b] mc:line-through">${{ product.originalPrice.toLocaleString('zh-TW') }}</del>
+        <del v-if="formattedOriginalPrice !== null" class="mc:text-[12px] mc:text-[#92959b] mc:line-through">${{ formattedOriginalPrice }}</del>
       </div>
       <div v-if="product.rating !== undefined" class="momo-card__reviews mc:mt-[3px] mc:flex mc:items-center mc:gap-[7px]">
-        <span class="momo-card__stars mc:relative mc:inline-block mc:text-[16px] mc:[line-height:1] mc:[letter-spacing:1px] mc:whitespace-nowrap mc:text-[#e0e0e0]" role="img" :aria-label="t('card.rating', { rating: product.rating })"><span aria-hidden="true">★★★★★</span><span class="momo-card__stars-fill mc:absolute mc:top-0 mc:left-0 mc:overflow-hidden mc:text-[#ffba00]" :style="{ width: `${product.rating / 5 * 100}%` }" aria-hidden="true">★★★★★</span></span>
+        <span class="momo-card__stars mc:relative mc:inline-block mc:text-[16px] mc:[line-height:1] mc:[letter-spacing:1px] mc:whitespace-nowrap mc:text-[#e0e0e0]" role="img" :aria-label="t('card.rating', { rating: product.rating })"><span aria-hidden="true">★★★★★</span><span class="momo-card__stars-fill mc:absolute mc:top-0 mc:left-0 mc:overflow-hidden mc:text-[#ffba00]" :style="{ width: ratingWidth }" aria-hidden="true">★★★★★</span></span>
         <span v-if="product.reviewCount !== undefined" class="momo-card__review-count mc:text-[11px] mc:text-[#92959b]">({{ product.reviewCount.toLocaleString('zh-TW') }})</span>
       </div>
       <div v-if="product.badges?.length" class="momo-card__badges mc:mt-[6px] mc:flex mc:flex-wrap mc:gap-[3px]">

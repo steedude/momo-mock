@@ -7,7 +7,7 @@ import { useShowroom } from './composables/useShowroom'
 import { CopyStatus, SaveStatus } from './types/product'
 
 const { t } = useI18n()
-const { draft, lastSaved, loadWarning, dirty, preview, errors, status, copyStatus, patchDraft, save, exportHtml, copyHtml } = useShowroom()
+const { draft, lastSaved, loadWarning, dirty, preview, errors, saveStatus, copyStatus, patchDraft, save, exportHtml, copyHtml } = useShowroom()
 const assetBase = new URL(import.meta.env.BASE_URL, window.location.href).href
 const sampleHref = `${import.meta.env.BASE_URL}sample.html`
 const html = computed(() => exportHtml(assetBase))
@@ -58,8 +58,8 @@ const html = computed(() => exportHtml(assetBase))
         <p v-if="dirty" class="mt-2 text-xs leading-5 text-amber-800">
           {{ t('app.draftHint') }}
         </p>
-        <p v-if="status !== SaveStatus.Idle" class="my-4 rounded-lg p-3 text-sm leading-6" :class="status === SaveStatus.Saved ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'" :role="status === SaveStatus.Saved ? 'status' : 'alert'">
-          {{ t(`app.${status}`) }}
+        <p v-if="saveStatus !== SaveStatus.Idle" class="my-4 rounded-lg p-3 text-sm leading-6" :class="saveStatus === SaveStatus.Saved ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'" :role="saveStatus === SaveStatus.Saved ? 'status' : 'alert'">
+          {{ t(`app.${saveStatus}`) }}
         </p>
         <ProductEditor :draft="draft" :errors="errors" @patch="patchDraft" @save="save" />
       </section>
