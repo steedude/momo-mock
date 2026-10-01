@@ -1,9 +1,10 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import ProductCard from './components/ProductCard.vue'
 import { mountProductCard } from './embed'
 import { i18n } from './i18n'
+import { createProductStorage } from './utils/storage'
 
 const product = {
   name: '輕巧無線耳機',
@@ -49,6 +50,19 @@ describe('共用商品卡', () => {
 })
 
 describe('獨立嵌入入口', () => {
+  it('使用自己的 599 資料，不讀取 Showroom 已儲存的 799', () => {
+    createProductStorage().save({ ...product, price: 799 })
+    const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('embedded card must not access storage')
+    })
+    const container = document.createElement('div')
+    const result = mountProductCard(container, { ...product, price: 599 })
+    expect(result.ok).toBe(true)
+    expect(container.querySelector('[data-testid="price"]')?.textContent?.trim()).toBe('$599')
+    if (result.ok)
+      result.unmount()
+    getItem.mockRestore()
+  })
   it.each([null, {}, { ...product, price: -1 }, { ...product, imageUrl: 'javascript:alert(1)' }])('拒絕無效商品，不改動宿主容器 %#', (input) => {
     const container = document.createElement('div')
     container.textContent = '宿主內容'

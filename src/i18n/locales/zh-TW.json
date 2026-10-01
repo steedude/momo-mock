@@ -5,7 +5,53 @@
   },
   "app": {
     "title": "商品卡展示間",
-    "description": "專案環境已就緒，商品卡功能將在下一階段實作。",
-    "status": "專案初始化完成"
+    "description": "調整商品內容，即時查看呈現效果。滿意後，再儲存你的設定。",
+    "status": "一種版型，專注呈現",
+    "eyebrow": "商品卡工作室",
+    "headline": "讓商品，成為焦點。",
+    "sample": "獨立引用示範",
+    "template": "經典直式",
+    "templateDescription": "方形圖片・促銷文字・商品名稱・售價",
+    "preview": "即時預覽",
+    "previewHint": "預覽會隨輸入即時更新",
+    "editing": "內容編輯",
+    "editingHint": "四個欄位，打造你的商品卡。",
+    "requiredHint": "標示 * 的欄位為必填",
+    "dirty": "有未儲存的修改",
+    "clean": "與已儲存內容一致",
+    "initial": "示範資料，尚未儲存",
+    "draftHint": "未儲存的修改會在重新整理或關閉頁面後遺失。",
+    "saved": "儲存成功，下次開啟將還原這份內容。",
+    "invalid": "尚未儲存，請修正下方標示的欄位。",
+    "failed": "儲存失敗，草稿已保留。請確認瀏覽器允許儲存，或釋放空間後重試。",
+    "localNote": "內容只儲存在此瀏覽器，不會同步到其他裝置。",
+    "footer": "以 momo 搜尋商品卡為靈感的簡化展示作品",
+    "singleTemplate": "共 1 種版型"
+  },
+  "editor": {
+    "name": "商品名稱",
+    "nameHint": "較長的名稱會在卡片中顯示最多兩行。",
+    "imageUrl": "圖片網址",
+    "imageHint": "請使用完整的 http 或 https 網址。載入失敗時會顯示佔位圖。",
+    "price": "商品售價",
+    "priceHint": "新臺幣，請輸入不小於 0 的數字。",
+    "promotion": "促銷文字",
+    "optional": "選填",
+    "promotionHint": "例如：限時優惠。留空即可隱藏。",
+    "save": "儲存內容",
+    "saveHint": "修改不會自動儲存"
+  },
+  "validation": {
+    "nameRequired": "請填寫商品名稱，不能只有空白。",
+    "imageInvalid": "請填寫有效的 http 或 https 圖片網址。",
+    "priceInvalid": "請填寫有效售價，必須是有限且不小於 0 的數字。",
+    "promotionInvalid": "促銷文字格式不正確。"
+  },
+  "storage": {
+    "invalidJson": "儲存內容無法解析，已載入示範資料。原內容未變更，按儲存後才會取代。",
+    "invalidData": "儲存內容缺少欄位或格式不正確，已載入示範資料。原內容未變更，按儲存後才會取代。",
+    "unsupportedVersion": "儲存內容的版本不支援，已載入示範資料。原內容未變更，按儲存後才會取代。",
+    "readFailed": "無法讀取瀏覽器儲存，已載入示範資料。你仍可編輯並嘗試儲存。",
+    "writeFailed": "無法寫入瀏覽器儲存。"
   }
 }

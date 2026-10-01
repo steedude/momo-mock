@@ -1,4 +1,4 @@
-import type { ProductResult, ValidationErrors } from '../types/product'
+import type { ProductDraft, ProductPreview, ProductResult, ValidationErrors } from '../types/product'
 import { ValidationCode } from '../types/product'
 
 export function parseProduct(input: unknown): ProductResult {
@@ -26,5 +26,18 @@ export function parseProduct(input: unknown): ProductResult {
   return {
     ok: true,
     value: { name: name as string, imageUrl: imageUrl as string, price: price as number, promotion: promotion as string },
+  }
+}
+
+export function parseDraft(draft: ProductDraft): ProductResult {
+  return parseProduct({ ...draft, price: draft.price.trim() ? Number(draft.price) : Number.NaN })
+}
+
+export function previewProduct(draft: ProductDraft): ProductPreview {
+  const result = parseDraft(draft)
+  return {
+    ...draft,
+    price: !result.ok && result.errors.price ? null : Number(draft.price),
+    imageUrl: !result.ok && result.errors.imageUrl ? '' : draft.imageUrl,
   }
 }
