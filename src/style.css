@@ -3,9 +3,3 @@
 @theme {
   --font-sans: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
 }
-
-@layer base {
-  body {
-    @apply m-0 min-w-[320px] bg-zinc-50 font-sans text-zinc-800;
-  }
-}

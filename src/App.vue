@@ -98,8 +98,5 @@ const html = computed(() => exportHtml(assetBase))
         {{ t('embed.assetHint') }}
       </p>
     </section>
-    <footer class="mt-5 text-xs leading-6 text-zinc-500">
-      {{ t('app.localNote') }}
-    </footer>
   </main>
 </template>

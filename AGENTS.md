@@ -31,7 +31,7 @@
 ## 樣式規則
 
 - Showroom、編輯器與引用區以 Tailwind utility classes 撰寫，不另建大份自訂排版 CSS。全域樣式只保留 Tailwind 入口、theme 與必要 base 設定。
-- 獨立商品卡使用 Tailwind `@reference`／`@apply` 配合 Vue scoped CSS；正式嵌入產物必須包含所需樣式，不依賴宿主的 Tailwind 主題變數，也不輸出全域 reset。獨立 HTML 的宿主示範樣式不屬於商品卡。
+- 商品卡及獨立 HTML 也直接在模板寫 Tailwind utility classes，不使用 `@apply`。獨立引用樣式使用 `mc:` 前綴，正式產物包含所需 utilities，不依賴宿主的 Tailwind 主題變數，也不輸出全域 reset。
 
 ## TDD 觸發規則
 

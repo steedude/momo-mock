@@ -184,7 +184,7 @@ sample.html                  # 自行帶入資料，引用正式 JS／CSS
 
 ## 第二輪調整與驗收
 
-依使用者看圖後確認的方向實作；保持 script 入口，不改成 Web Component 或離線單檔。頁首簡化為「B 題｜商品卡展示與編輯」，移除宣傳文案與重複版型框；Showroom 及表單使用 Tailwind utilities，卡片使用 Tailwind 編譯的 scoped CSS。
+依使用者看圖後確認的方向實作；保持 script 入口，不改成 Web Component 或離線單檔。頁首簡化為「B 題｜商品卡展示與編輯」，移除宣傳文案與重複版型框；Showroom 及表單使用 Tailwind utilities，卡片直接使用帶有 `mc:` 前綴的 Tailwind utilities。
 
 | 操作／測試 | 結果 |
 | --- | --- |

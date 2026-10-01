@@ -1,0 +1,5 @@
+@import "tailwindcss/theme.css" prefix(mc) reference;
+@import "tailwindcss/utilities.css" prefix(mc) source(none);
+
+@source "./components/ProductCard.vue";
+@source "../sample.html";
