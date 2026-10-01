@@ -1,15 +1,9 @@
-import { copyFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [vue(), {
-    name: 'copy-sample-html',
-    closeBundle() {
-      copyFileSync(fileURLToPath(new URL('./sample.html', import.meta.url)), fileURLToPath(new URL('./dist/sample.html', import.meta.url)))
-    },
-  }],
+  plugins: [vue()],
   define: { 'process.env.NODE_ENV': JSON.stringify('production') },
   build: {
     outDir: 'dist/embed',

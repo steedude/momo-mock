@@ -26,7 +26,6 @@
     "description": "下載最後成功儲存的卡片，直接開啟 HTML 即可查看。",
     "download": "下載 HTML",
     "preparing": "正在準備下載…",
-    "sample": "開啟獨立範例",
     "saveFirst": "請先儲存商品內容，才能下載 HTML。",
     "draftNotice": "目前有未儲存的修改，下載仍使用最後成功儲存的內容。",
     "downloaded": "已送出下載，請開啟 product-card.html。",

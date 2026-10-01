@@ -2,7 +2,7 @@
 
 momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。九個欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
 
-**已完成：** 商品卡、九欄編輯、驗證、儲存／還原與錯誤處理、已儲存卡片的 HTML 下載、正式 script／CSS 及 sample。4 個測試檔共 114 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。
+**已完成：** 商品卡、九欄編輯、驗證、儲存／還原與錯誤處理、已儲存卡片的 HTML 下載、正式 script／CSS。4 個測試檔共 114 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。
 
 ## 啟動與驗證
 
@@ -19,17 +19,16 @@ pnpm preview
 開啟終端顯示的網址，預設為：
 
 - Showroom：http://localhost:4173/
-- 獨立引用：http://localhost:4173/sample.html
 
-`pnpm build` 會先執行 vue-tsc，再建立兩個入口並把 sample 複製進 dist；整個 `dist/` 可部署到靜態 HTTP 伺服器。Showroom 與 script sample 需 HTTP；從 Showroom 下載的 `product-card.html` 則可直接雙擊開啟，圖片需網路連線。若連接埠被占用，依終端顯示網址為準。
+`pnpm build` 會先執行 vue-tsc，再建立 Showroom 與商品卡 script 產物；整個 `dist/` 可部署到靜態 HTTP 伺服器。Showroom 需 HTTP；從 Showroom 下載的 `product-card.html` 則可直接雙擊開啟，圖片需網路連線。若連接埠被占用，依終端顯示網址為準。
 
 | 指令 | 用途 |
 | --- | --- |
-| `pnpm dev` | Vite 開發，預設 localhost:5173；範例為 `/sample.html`，引用 `/embed/` 的上次正式建置。首次開啟及修改卡片後須先 build。開發 middleware 直接提供產物，避免 Vite 轉換快取；舊 `/dist/sample.html` 會重新導向。 |
+| `pnpm dev` | Vite 開發，預設 localhost:5173；script 產物由正式建置提供。 |
 | `pnpm test` / `pnpm test:watch` | Vitest 單次／監看測試。 |
 | `pnpm lint` / `pnpm lint:fix` | antfu ESLint 檢查／修正。 |
 | `pnpm typecheck` | vue-tsc 檢查 Vue、TypeScript 與測試。 |
-| `pnpm build` / `pnpm preview` | 正式建置／預覽兩頁。 |
+| `pnpm build` / `pnpm preview` | 正式建置／預覽 Showroom。 |
 
 工具包含 Vue、TypeScript、Vite、vue-i18n、Tailwind CSS 4、antfu ESLint、vue-tsc、Vitest、Vue Test Utils、jsdom、lint-staged、Husky。i18n 只有 zh-TW；不加入 Router 或 Pinia。VS Code 的專案設定提供 ESLint 存檔修正、TypeScript 路徑、Tailwind 提示與 i18n Ally 繁中預覽。
 
@@ -43,7 +42,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 下方「下載商品卡」只使用**最後一次成功儲存的快照**。按「下載 HTML」取得 `product-card.html`，包含共用 ProductCard 呈現的靜態 HTML 與編譯後 CSS，可直接雙擊開啟。圖片保留原始 HTTP(S) 網址，不下載或轉換 Base64，開啟檔案時需網路且來源圖片仍可存取；產生檔案不需要圖片 CORS 授權。尚未儲存時禁止下載，下載後不會跟隨 Showroom 更新，需重新儲存下載。
 
-script 引用方案仍保留於 sample，使用獨立 599 元示範資料；它與下載快照都共用 ProductCard。`createStandaloneHtml` 保留原始圖片網址並輸出完整靜態頁；script 使用方式如下。
+獨立範例頁已移除；script 掛載功能與下載快照仍共用 ProductCard。`createStandaloneHtml` 保留原始圖片網址並輸出完整靜態頁；script 使用方式如下。
 
 選填商品欄位：`originalPrice`（有限且不小於零，僅高於售價時顯示）、`rating`（0–5、每 0.5 一級）、`reviewCount`／`salesCount`（非負安全整數）、`badges`（非空白字串陣列）。缺省欄位不顯示；四個原有欄位仍為必要資料。商品名稱最多兩行，title 保留完整內容。
 
@@ -65,7 +64,7 @@ script 引用方案仍保留於 sample，使用獨立 599 元示範資料；它�
 </script>
 ```
 
-`mountProductCard(container, data)` 要求有效且專供卡片使用的 HTMLElement 容器，驗證四個商品欄位；成功回傳 `{ ok: true, unmount }`，失敗回傳 `{ ok: false, errors }`，不掛載無效資料。sample 固定傳入 599，不讀取 Showroom 的 localStorage。
+`mountProductCard(container, data)` 要求有效且專供卡片使用的 HTMLElement 容器，驗證四個商品欄位；成功回傳 `{ ok: true, unmount }`，失敗回傳 `{ ok: false, errors }`，不掛載無效資料。嵌入入口不讀取 Showroom 的 localStorage。
 
 ## 架構與取捨
 
