@@ -2,7 +2,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import ProductCard from './components/ProductCard.vue'
-import { useShowroom } from './composables/useShowroom'
 import { createStandaloneHtml, mountProductCard } from './embed'
 import { i18n } from './i18n'
 import { createProductStorage } from './utils/storage'
@@ -69,13 +68,23 @@ describe('共用商品卡', () => {
 })
 
 describe('獨立嵌入入口', () => {
-  it('下載快照包含卡片、內嵌圖片與樣式，沒有外部程式或圖片依賴', async () => {
+  it('下載原始碼分行縮排、移除 Vue 註解並保留文字與星等內容', async () => {
+    const html = await createStandaloneHtml({ ...product, name: '耳機 <特價>', rating: 3.5 })
+    expect(html).toContain('\n    <article')
+    expect(html).toContain('\n      <div')
+    expect(html).not.toContain('<!--')
+    const document = new DOMParser().parseFromString(html, 'text/html')
+    expect(document.querySelector('h2')?.textContent).toBe('耳機 <特價>')
+    expect(document.querySelector('.momo-card__stars-fill')?.textContent).toBe('★★★★★')
+    expect(document.querySelector('style')).not.toBeNull()
+  })
+  it('下載快照保留圖片網址與內嵌樣式，不含 Base64 或外部程式', async () => {
     vi.stubGlobal('fetch', async () => ({ ok: true, blob: async () => new Blob(['image'], { type: 'image/png' }) }))
     try {
       const html = await createStandaloneHtml({ ...product, name: '</script><b>耳機</b>' })
       const exported = new DOMParser().parseFromString(html, 'text/html')
       expect(exported.querySelector('h2')?.textContent).toBe('</script><b>耳機</b>')
-      expect(exported.querySelector('img')?.getAttribute('src')).toMatch(/^data:image\/png;base64,/)
+      expect(exported.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl)
       expect(exported.querySelector('style')).not.toBeNull()
       expect(exported.querySelector('script, link, b')).toBeNull()
       expect(exported.body.textContent).toContain('$999')
@@ -83,23 +92,6 @@ describe('獨立嵌入入口', () => {
     finally {
       vi.unstubAllGlobals()
     }
-  })
-  it('匯出含 HTML 結束標記的商品後仍能還原資料，且不插入額外 script', () => {
-    const maliciousName = '</script><script>x'
-    const showroom = useShowroom()
-    showroom.patchDraft({ ...product, price: '799', name: maliciousName })
-    showroom.save()
-    const html = showroom.exportHtml('https://cards.example.com/demo/')!
-    const exported = new DOMParser().parseFromString(html, 'text/html')
-    expect(exported.querySelectorAll('script')).toHaveLength(3)
-    const data = JSON.parse(exported.getElementById('product-data')!.textContent!)
-    const container = document.createElement('div')
-    const result = mountProductCard(container, data)
-    expect(result.ok).toBe(true)
-    expect(container.querySelector('h2')?.textContent).toBe(maliciousName)
-    expect(container.querySelector('[data-testid="price"]')?.textContent?.trim()).toBe('$799')
-    if (result.ok)
-      result.unmount()
   })
   it('使用自己的 599 資料，不讀取 Showroom 已儲存的 799', () => {
     createProductStorage().save({ ...product, price: 799 })

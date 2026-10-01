@@ -1,5 +1,129 @@
-@import "tailwindcss/theme.css" prefix(mc) reference;
-@import "tailwindcss/utilities.css" prefix(mc) source(none);
+.momo-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 260px;
+  overflow: hidden;
+  background: #fff;
+  color: #29252a;
+  font: 14px/1.5 Arial, "Noto Sans TC", sans-serif;
+  text-align: left;
+}
 
-@source "./components/ProductCard.vue";
-@source "../sample.html";
+.momo-card__image {
+  display: grid;
+  aspect-ratio: 1;
+  place-items: center;
+  overflow: hidden;
+  background: #faf9fa;
+}
+
+.momo-card__image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.momo-card__body {
+  padding: 10px 2px 2px;
+}
+
+.momo-card__promotion {
+  overflow: hidden;
+  margin: 0 0 3px;
+  color: #e72865;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.momo-card h2 {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 42px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.momo-card__prices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.momo-card__price {
+  margin: 0;
+  color: #ed1675;
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.momo-card del {
+  color: #92959b;
+  font-size: 12px;
+  text-decoration: line-through;
+}
+
+.momo-card__reviews {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 3px;
+}
+
+.momo-card__stars {
+  position: relative;
+  display: inline-block;
+  color: #e0e0e0;
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.momo-card__stars-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  color: #ffba00;
+}
+
+.momo-card__review-count {
+  color: #92959b;
+  font-size: 11px;
+}
+
+.momo-card__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 6px;
+}
+
+.momo-card__badge {
+  padding: 0 3px;
+  border-radius: 2px;
+  background: #ff4e8b;
+  color: #fff;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.momo-card__sales {
+  margin: 5px 0 0;
+  color: #444;
+  font-size: 11px;
+}
+
+.momo-card__placeholder {
+  color: #8a7781;
+  font-size: 14px;
+}

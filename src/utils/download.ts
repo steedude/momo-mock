@@ -6,5 +6,6 @@ export async function downloadHtmlFile(html: string): Promise<void> {
   document.body.append(link)
   link.click()
   link.remove()
+  // 留時間讓瀏覽器接手下載，再釋放暫存網址。
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }

@@ -4,7 +4,6 @@ import { defaultProduct } from '../configs/product'
 import { createStandaloneHtml } from '../embed'
 import { DownloadStatus, SaveStatus } from '../types/product'
 import { downloadHtmlFile } from '../utils/download'
-import { createEmbedHtml } from '../utils/embedHtml'
 import { parseDraft, previewProduct, toProductDraft } from '../utils/product'
 import { createProductStorage } from '../utils/storage'
 
@@ -13,7 +12,7 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
   const loaded = storage.load()
   const loadWarning = ref<StorageIssue | null>(loaded.ok ? null : loaded.reason)
   const lastSaved = ref<Product | null>(loaded.ok ? loaded.value : null)
-  const initial = lastSaved.value ?? defaultProduct(typeof document === 'undefined' ? 'http://localhost/' : document.baseURI)
+  const initial = lastSaved.value ?? defaultProduct()
   const draft = ref<ProductDraft>(toProductDraft(initial))
   const savedDraftBaseline = ref({ ...draft.value })
   const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraftBaseline.value))
@@ -43,6 +42,7 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
       saveStatus.value = SaveStatus.Failed
       return false
     }
+    // 寫入成功後才更新快照，儲存失敗不影響下載內容。
     lastSaved.value = { ...parsed.value }
     savedDraftBaseline.value = { ...draft.value }
     loadWarning.value = null
@@ -51,11 +51,8 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
     return true
   }
 
-  function exportHtml(assetBase: string) {
-    return lastSaved.value ? createEmbedHtml(lastSaved.value, assetBase) : null
-  }
-
   async function downloadHtml(writeFile: (html: string) => Promise<void> = downloadHtmlFile) {
+    // 固定本次下載版本，不讓準備期間的新存檔混入。
     const snapshot = lastSaved.value
     if (!snapshot || downloadStatus.value === DownloadStatus.Preparing)
       return false
@@ -63,6 +60,7 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
     try {
       const html = await createStandaloneHtml(snapshot)
       await writeFile(html)
+      // 若使用者已另存新版，不顯示舊版本的完成提示。
       if (lastSaved.value === snapshot)
         downloadStatus.value = DownloadStatus.Downloaded
       return true
@@ -87,7 +85,6 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
 
     patchDraft,
     save,
-    exportHtml,
     downloadHtml,
   }
 }

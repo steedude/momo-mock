@@ -5,15 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>商品卡獨立引用範例</title>
     <link rel="stylesheet" href="./embed/product-card.css">
+    <style>
+      .sample-page { margin: 24px; color: #263547; background: #f6f8fa; font-family: Georgia, serif; }
+      .sample-page main { max-width: 1000px; margin: auto; }
+      .sample-page h1 { font-size: 24px; }
+      .sample-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 32px; margin: 28px 0; }
+      .sample-page #product-card { box-sizing: border-box; max-width: 280px; padding: 10px; background: white; }
+      .sample-page section { min-width: 0; line-height: 1.8; }
+      .sample-page pre { overflow: auto; max-height: 390px; padding: 16px; background: #e9edf2; font: 12px/1.8 monospace; }
+    </style>
   </head>
-  <body class="mc:m-[24px] mc:text-[#263547] mc:bg-[#f6f8fa] mc:[font-family:Georgia,serif]">
-    <main class="mc:max-w-[1000px] mc:mx-auto">
+  <body class="sample-page">
+    <main>
       <a href="./">← 回到 Showroom</a>
-      <h1 class="mc:text-[24px]">商品卡獨立引用範例</h1>
+      <h1>商品卡獨立引用範例</h1>
       <p>這是一個獨立 HTML，只引用商品卡的正式 JS／CSS。資料由本頁提供，不讀取 Showroom 存檔。</p>
-      <div class="mc:grid mc:grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] mc:gap-[32px] mc:my-[28px]">
-        <div><div id="product-card" class="mc:box-border mc:max-w-[280px] mc:p-[10px] mc:bg-[#fff]"></div></div>
-        <section class="mc:min-w-0 mc:[line-height:1.8]" aria-labelledby="usage-heading">
+      <div class="sample-layout">
+        <div><div id="product-card"></div></div>
+        <section  aria-labelledby="usage-heading">
           <h2 id="usage-heading">如何使用</h2>
           <ol>
             <li>在自己的頁面載入商品卡 CSS 與 script。</li>
@@ -21,7 +30,7 @@
             <li>只想取得可直接開啟的卡片，回到 Showroom 儲存，再按「下載 HTML」。</li>
           </ol>
           <p>以下是本頁實際使用的資料與引用方式。599 元為獨立示範值，並非你的存檔。</p>
-          <pre class="mc:overflow-auto mc:max-h-[390px] mc:p-[16px] mc:bg-[#e9edf2] mc:text-[12px] mc:[line-height:1.8] mc:[font-family:monospace]"><code id="usage"></code></pre>
+          <pre><code id="usage"></code></pre>
           <p>發布到其他網站時，請一併提供 JS／CSS，並調整引用路徑及圖片網址。</p>
         </section>
       </div>
@@ -31,7 +40,7 @@
       const container = document.getElementById('product-card')
       const product = {
         name: '【示範商品】輕量無線耳罩式耳機',
-        imageUrl: new URL('./headphones.svg', window.location.href).href,
+        imageUrl: 'https://cdn.dummyjson.com/product-images/mobile-accessories/apple-airpods-max-silver/1.webp',
         price: 599,
         promotion: '限時優惠・獨立示範',
         originalPrice: 1299,
