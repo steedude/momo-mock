@@ -265,3 +265,10 @@ sample.html                  # 自行帶入資料，引用正式 JS／CSS
 ## 獨立範例頁移除（2026-10-01）
 
 依使用者最新指示移除開啟獨立範例按鈕、sample.html、複製範例頁的建置設定與專用開發 middleware／重新導向。下載 HTML、script 掛載介面與正式 JS／CSS 產物保留；前文 sample 驗收紀錄僅代表歷史版本。驗收：首頁下載區只保留下載按鈕，正式建置不再產生 sample.html。
+
+## 恢復考題所需的 script 範例（2026-10-01）
+
+- 提供 `public/sample.html`，由 Vite 複製至 `dist/sample.html`，引用正式商品卡 JS／CSS 並呼叫 `MomoCard.mountProductCard`。範例自帶九欄資料，不讀取 Showroom 儲存內容。
+- 保留下載最後儲存快照的功能；不恢復 Showroom 範例按鈕、回程連結或掛載／移除操作。
+- 驗收：執行 `pnpm build`、`pnpm preview`，開啟 `/sample.html`，應呈現名稱、599 元售價、原價、促銷、4.5 星、168 筆評價、標籤與 3,000 銷量；查看原始碼可見 JS／CSS 引用與掛載呼叫。
+- 已通過型別檢查與正式建置；瀏覽器確認 script 掛載及商品卡樣式、上述資料呈現正常。圖片依外部 CDN 載入。

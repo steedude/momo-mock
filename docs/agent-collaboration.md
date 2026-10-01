@@ -98,3 +98,9 @@
 - 推送後清理：移除所有小數處理分支及 decimals 設定、嵌入建置不再需要的 Tailwind 插件與未使用的 storage.writeFailed 文案；必要註釋補在 IME、字元計數、原始數字格式、存檔保留、下載快照、HTML 轉義與暫存網址釋放處。114 案例與兩入口建置通過；這批後續修改留在本機。
 
 - 獨立範例移除：使用者表示按鈕有問題並要求移除相關內容後推送；刪除按鈕、文案、sample.html、專用開發資源 middleware 與建置複製步驟，同步 README，保留下載 HTML 及 script 掛載。
+
+## 恢復最小 script 範例（2026-10-01）
+
+- 使用者確認加回 sample HTML 並推送，以符合題目的 script 引用示範條件。
+- Agent 新增 `public/sample.html`，直接引用正式 JS／CSS、傳入九欄商品資料，使用既有共用商品卡；未恢復已刪除的 UI 按鈕。README 補上建置、preview 與範例網址。
+- 驗證：`pnpm build`（含 vue-tsc）通過，瀏覽器確認 `/sample.html` 的商品資料與卡片樣式正常。這次僅靜態範例與文件變更，未重跑功能測試。
