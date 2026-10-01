@@ -1,0 +1,40 @@
+{
+  "name": "momo-mock",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "node": ">=22.22.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "pnpm typecheck && vite build",
+    "preview": "vite preview",
+    "typecheck": "vue-tsc -b",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "vue": "^3.5.43",
+    "vue-i18n": "^11.4.12"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^9.5.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22.0.0",
+    "@vitejs/plugin-vue": "^6.0.9",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.11.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.1",
+    "vue-tsc": "^3.3.11"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,vue,json,yaml,yml,md}": "eslint --fix"
+  }
+}
