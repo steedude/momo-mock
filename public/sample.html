@@ -9,7 +9,7 @@
   <body>
     <h1>商品卡 script 引用範例</h1>
     <p>本頁提供自己的商品資料，透過 script 掛載與 Showroom 共用的商品卡。</p>
-    <div id="product-card"></div>
+    <div id="product-card">商品卡尚未載入。請先執行 pnpm dev，或 pnpm build 後執行 pnpm preview，再透過伺服器網址開啟本頁。</div>
 
     <script src="./embed/product-card.iife.js"></script>
     <script>
@@ -26,8 +26,8 @@
         badges: ['速達', '折價券', '贈品'],
       }
       const container = document.getElementById('product-card')
-      const result = MomoCard.mountProductCard(container, product)
-      if (!result.ok) {
+      const result = window.MomoCard?.mountProductCard(container, product)
+      if (result && !result.ok) {
         container.textContent = '商品資料不正確，無法顯示'
         console.error(result.errors)
       }

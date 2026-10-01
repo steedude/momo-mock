@@ -25,7 +25,7 @@ pnpm preview
 
 | 指令 | 用途 |
 | --- | --- |
-| `pnpm dev` | Vite 開發，預設 localhost:5173；script 產物由正式建置提供。 |
+| `pnpm dev` | 先建置商品卡，再啟動 Vite，預設 localhost:5173；可開啟 /sample.html。 |
 | `pnpm test` / `pnpm test:watch` | Vitest 單次／監看測試。 |
 | `pnpm lint` / `pnpm lint:fix` | antfu ESLint 檢查／修正。 |
 | `pnpm typecheck` | vue-tsc 檢查 Vue、TypeScript 與測試。 |
@@ -43,7 +43,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 下方「下載商品卡」只使用**最後一次成功儲存的快照**。按「下載 HTML」取得 `product-card.html`，包含共用 ProductCard 呈現的靜態 HTML 與編譯後 CSS，可直接雙擊開啟。圖片保留原始 HTTP(S) 網址，不下載或轉換 Base64，開啟檔案時需網路且來源圖片仍可存取；產生檔案不需要圖片 CORS 授權。尚未儲存時禁止下載，下載後不會跟隨 Showroom 更新，需重新儲存下載。
 
-`public/sample.html` 是可閱讀、修改的 script 引用範例，建置時自動複製到 `dist/sample.html`。先執行 `pnpm build`、`pnpm preview`，再開啟 `/sample.html`；請使用 preview 的網址，開發伺服器不提供正式 embed 產物。範例自帶商品資料，與 Showroom 共用 ProductCard；下載 HTML 則是最後儲存內容的靜態快照。`createStandaloneHtml` 保留原始圖片網址並輸出完整靜態頁；script 使用方式如下。
+`public/sample.html` 是可閱讀、修改的 script 引用範例，建置時自動複製到 `dist/sample.html`。執行 `pnpm dev` 後，點選 Showroom 下方「開啟獨立範例 ↗」；亦可執行 `pnpm build`、`pnpm preview`，開啟 `/sample.html`。修改商品卡後需重新執行 `pnpm dev` 或 `pnpm build`，更新範例使用的 JS／CSS。範例自帶商品資料，與 Showroom 共用 ProductCard；下載 HTML 則是最後儲存內容的靜態快照。`createStandaloneHtml` 保留原始圖片網址並輸出完整靜態頁；script 使用方式如下。
 
 選填商品欄位：`originalPrice`（有限且不小於零，僅高於售價時顯示）、`rating`（0–5、每 0.5 一級）、`reviewCount`／`salesCount`（非負安全整數）、`badges`（非空白字串陣列）。缺省欄位不顯示；四個原有欄位仍為必要資料。商品名稱最多兩行，title 保留完整內容。
 

@@ -104,3 +104,11 @@
 - 使用者確認加回 sample HTML 並推送，以符合題目的 script 引用示範條件。
 - Agent 新增 `public/sample.html`，直接引用正式 JS／CSS、傳入九欄商品資料，使用既有共用商品卡；未恢復已刪除的 UI 按鈕。README 補上建置、preview 與範例網址。
 - 驗證：`pnpm build`（含 vue-tsc）通過，瀏覽器確認 `/sample.html` 的商品資料與卡片樣式正常。這次僅靜態範例與文件變更，未重跑功能測試。
+
+## 範例開發網址修正（2026-10-01）
+
+- 重現：5173 的 `/embed/product-card.iife.js` 回傳首頁 HTML，導致商品卡未掛載；4173 預覽伺服器當時未執行。
+- `pnpm dev` 改為先建置商品卡，開發伺服器只對兩個固定商品卡資產路徑提供 dist 產物；sample 加入載入失敗提示。未修改共用掛載 API 或商品資料行為。
+- 驗證：瀏覽器在 `http://localhost:5173/sample.html` 確認商品名稱、價格、星等、標籤與銷量成功呈現。ESLint、vue-tsc 與正式建置通過；瀏覽器確認下方範例連結已恢復。這次未重跑功能測試。
+
+- 使用者指出按鈕仍缺少：恢復 Showroom 下方『開啟獨立範例 ↗』連結，依部署 base 路徑開啟 sample.html 新分頁；補正 README 開發模式說明。

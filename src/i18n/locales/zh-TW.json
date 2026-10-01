@@ -30,6 +30,7 @@
     "draftNotice": "目前有未儲存的修改，下載仍使用最後成功儲存的內容。",
     "downloaded": "已送出下載，請開啟 product-card.html。",
     "failed": "無法產生下載檔，請重試。",
+    "sample": "開啟獨立範例 ↗",
     "assetHint": "HTML 可直接開啟，樣式已內含；圖片使用原始網址，需要網路連線。"
   },
   "editor": {
