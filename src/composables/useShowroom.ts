@@ -3,7 +3,7 @@ import { computed, readonly, ref } from 'vue'
 import { defaultProduct } from '../configs/product'
 import { CopyStatus, SaveStatus } from '../types/product'
 import { createEmbedHtml } from '../utils/embedHtml'
-import { parseDraft, previewProduct } from '../utils/product'
+import { parseDraft, previewProduct, toProductDraft } from '../utils/product'
 import { createProductStorage } from '../utils/storage'
 
 export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> = () => window.localStorage) {
@@ -11,9 +11,9 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
   const loaded = storage.load()
   const loadWarning = ref<StorageIssue | null>(loaded.ok ? null : loaded.reason)
   const lastSaved = ref<Product | null>(loaded.ok ? loaded.value : null)
-  const initial = { ...defaultProduct(typeof document === 'undefined' ? 'http://localhost/' : document.baseURI), ...lastSaved.value }
-  const draft = ref<ProductDraft>({ ...initial, price: String(initial.price) })
-  const savedDraftBaseline = ref(lastSaved.value ? { ...lastSaved.value, price: String(lastSaved.value.price) } : { ...draft.value })
+  const initial = lastSaved.value ?? defaultProduct(typeof document === 'undefined' ? 'http://localhost/' : document.baseURI)
+  const draft = ref<ProductDraft>(toProductDraft(initial))
+  const savedDraftBaseline = ref({ ...draft.value })
   const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraftBaseline.value))
   const preview = computed(() => previewProduct(draft.value))
   const saveStatus = ref(SaveStatus.Idle)

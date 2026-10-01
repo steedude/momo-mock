@@ -1,4 +1,4 @@
-import type { ProductDraft, ProductPreview, ProductResult, ValidationErrors } from '../types/product'
+import type { Product, ProductDraft, ProductPreview, ProductResult, ValidationErrors } from '../types/product'
 import { ValidationCode } from '../types/product'
 
 export function parseProduct(input: unknown): ProductResult {
@@ -51,15 +51,46 @@ export function parseProduct(input: unknown): ProductResult {
   }
 }
 
+export function toProductDraft(product: Product): ProductDraft {
+  return {
+    ...product,
+    price: String(product.price),
+    originalPrice: product.originalPrice?.toString() ?? '',
+    rating: product.rating?.toString() ?? '',
+    reviewCount: product.reviewCount?.toString() ?? '',
+    salesCount: product.salesCount?.toString() ?? '',
+    badges: product.badges?.join(', ') ?? '',
+  }
+}
+
+function draftValues(draft: ProductDraft) {
+  const optionalNumber = (value?: string) => value?.trim() ? Number(value) : undefined
+  return {
+    ...draft,
+    price: draft.price.trim() ? Number(draft.price) : Number.NaN,
+    originalPrice: optionalNumber(draft.originalPrice),
+    rating: optionalNumber(draft.rating),
+    reviewCount: optionalNumber(draft.reviewCount),
+    salesCount: optionalNumber(draft.salesCount),
+    badges: draft.badges?.trim() ? draft.badges.split(/[,，\n]/).map(value => value.trim()).filter(Boolean) : undefined,
+  }
+}
+
 export function parseDraft(draft: ProductDraft): ProductResult {
-  return parseProduct({ ...draft, price: draft.price.trim() ? Number(draft.price) : Number.NaN })
+  return parseProduct(draftValues(draft))
 }
 
 export function previewProduct(draft: ProductDraft): ProductPreview {
   const result = parseDraft(draft)
+  const values = draftValues(draft)
+  const errors = result.ok ? {} : result.errors
   return {
-    ...draft,
-    price: !result.ok && result.errors.price ? null : Number(draft.price),
-    imageUrl: !result.ok && result.errors.imageUrl ? '' : draft.imageUrl,
+    ...values,
+    price: errors.price ? null : values.price,
+    imageUrl: errors.imageUrl ? '' : values.imageUrl,
+    originalPrice: errors.originalPrice ? undefined : values.originalPrice,
+    rating: errors.rating ? undefined : values.rating,
+    reviewCount: errors.reviewCount ? undefined : values.reviewCount,
+    salesCount: errors.salesCount ? undefined : values.salesCount,
   }
 }

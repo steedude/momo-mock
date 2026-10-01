@@ -14,6 +14,22 @@ function memoryStorage() {
 }
 
 describe('showroom 狀態與儲存流程', () => {
+  it('編輯全部選填資訊後可預覽、儲存、引用，清空後重開不補回示範值', () => {
+    const source = memoryStorage()
+    const showroom = useShowroom(() => source)
+    showroom.patchDraft({ originalPrice: '1500', rating: '2.5', reviewCount: '8', salesCount: '42', badges: '免運，限時' })
+    expect(showroom.preview.value).toMatchObject({ originalPrice: 1500, rating: 2.5, reviewCount: 8, salesCount: 42, badges: ['免運', '限時'] })
+    expect(showroom.exportHtml('https://example.com/')).toBeNull()
+    expect(showroom.save()).toBe(true)
+    expect(showroom.exportHtml('https://example.com/')).toContain('"rating": 2.5')
+    expect(useShowroom(() => source).draft.value).toMatchObject({ rating: '2.5', badges: '免運, 限時' })
+    showroom.patchDraft({ originalPrice: '', rating: '', reviewCount: '', salesCount: '', badges: '' })
+    expect(showroom.save()).toBe(true)
+    const reopened = useShowroom(() => source)
+    expect(reopened.preview.value.rating).toBeUndefined()
+    expect(reopened.preview.value.badges).toBeUndefined()
+    expect(reopened.dirty.value).toBe(false)
+  })
   it('複製尚未完成時儲存新版本，不會把舊版本的複製結果標成新版本已複製', async () => {
     const source = memoryStorage()
     createProductStorage(() => source).save(product)
@@ -28,18 +44,18 @@ describe('showroom 狀態與儲存流程', () => {
     await copying
     expect(showroom.copyStatus.value).toBe('idle')
   })
-  it('舊四欄位存檔只在草稿補充示範資訊，成功儲存前不改引用快照', () => {
+  it('舊四欄位存檔維持原內容，選填資訊保持空白', () => {
     const legacy = { name: '舊商品', imageUrl: 'https://example.com/old.jpg', price: 999, promotion: '' }
     const source = memoryStorage()
     createProductStorage(() => source).save(legacy)
     const showroom = useShowroom(() => source)
-    expect(showroom.preview.value.originalPrice).toBe(1299)
-    expect(showroom.dirty.value).toBe(true)
+    expect(showroom.preview.value.originalPrice).toBeUndefined()
+    expect(showroom.dirty.value).toBe(false)
     expect(showroom.lastSaved.value).toEqual(legacy)
     expect(createProductStorage(() => source).load()).toEqual({ ok: true, value: legacy })
     expect(showroom.exportHtml('https://cards.example.com/')).not.toContain('originalPrice')
     showroom.save()
-    expect(showroom.exportHtml('https://cards.example.com/')).toContain('"originalPrice": 1299')
+    expect(showroom.exportHtml('https://cards.example.com/')).not.toContain('originalPrice')
     expect(showroom.dirty.value).toBe(false)
   })
   it('成功儲存新版本後清除先前的複製成功提示', async () => {

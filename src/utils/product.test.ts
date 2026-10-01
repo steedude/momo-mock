@@ -4,6 +4,19 @@ import { parseDraft, parseProduct, previewProduct } from './product'
 const valid = { name: '無線耳機', imageUrl: 'https://example.com/a.jpg', price: 999, promotion: '優惠' }
 
 describe('商品資料驗證', () => {
+  it.each([{ rating: '6' }, { originalPrice: '-1' }, { reviewCount: '1.5' }, { salesCount: 'abc' }])('無效選填數字保留草稿，但不出現在預覽且不能儲存 %#', (patch) => {
+    const draft = { ...valid, price: '999', ...patch }
+    expect(parseDraft(draft).ok).toBe(false)
+    expect(previewProduct(draft)).toMatchObject(Object.fromEntries(Object.keys(patch).map(key => [key, undefined])))
+  })
+  it('選填數字 0 有效，空白表示未提供，空標籤分隔會被忽略', () => {
+    expect(parseDraft({ ...valid, price: '999', rating: '0', reviewCount: '0', salesCount: '0', originalPrice: ' ', badges: ',，\n' })).toEqual({ ok: true, value: { ...valid, rating: 0, reviewCount: 0, salesCount: 0, badges: [] } })
+  })
+  it('將選填欄位輸入轉成數值與標籤列表', () => {
+    const draft = { ...valid, price: '999', originalPrice: '1200', rating: '3.5', reviewCount: '12', salesCount: '200', badges: '免運, 折價券' }
+    expect(parseDraft(draft)).toEqual({ ok: true, value: { ...valid, originalPrice: 1200, rating: 3.5, reviewCount: 12, salesCount: 200, badges: ['免運', '折價券'] } })
+    expect(previewProduct(draft)).toEqual({ ...valid, originalPrice: 1200, rating: 3.5, reviewCount: 12, salesCount: 200, badges: ['免運', '折價券'] })
+  })
   it.each([
     { originalPrice: -1 },
     { originalPrice: Infinity },

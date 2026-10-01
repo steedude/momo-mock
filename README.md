@@ -1,6 +1,6 @@
 # momo-mock
 
-momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。四欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
+momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。九個欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
 
 **已完成：** 商品卡、編輯、驗證、儲存／還原與錯誤處理、已儲存內容的 HTML 複製、正式 script／CSS 及 sample。4 個測試檔共 89 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。功能提交目前保留本機，待使用者檢視後再推送。
 
@@ -39,7 +39,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 修改名稱、HTTP(S) 圖片網址、售價與促銷文字，左側即時更新；促銷留空會隱藏。按「儲存內容」成功後，重新整理會還原這份資料。未儲存修改會捨棄，無效輸入或儲存失敗會保留草稿。圖片載入失敗顯示佔位圖，仍允許儲存有效網址。
 
-商品卡另呈現外部資料的原價、星等／評價數、服務標籤與銷量；這些在 Showroom 為固定示範資訊，不增加編輯欄位。舊存檔缺少的資訊只先補至草稿並顯示未儲存，按儲存才更新快照；不自動回寫或改掉原存檔。
+原價、星等／評價數、商品標籤與銷量也可編輯；選填數字留空會隱藏，標籤以中英文逗號或換行分隔。所有修改需成功儲存才更新引用內容。既有存檔缺少的選填欄位保持空白，不再補入示範值，避免清空後重新出現。
 
 下方「引用商品卡」提供完整 HTML 與複製按鈕，只使用**最後一次成功儲存的快照**。尚未儲存時不產生程式碼；修改草稿或儲存失敗不改變引用內容。剪貼簿被拒絕時可在程式碼區全選手動複製。這是引用外部 JS／CSS 的完整 HTML 範例，並非把所有資源內嵌的離線單檔；部署時須提供可存取的資源網址，或將 JS／CSS 放到自己的網站。sample 自帶 599 元示範資料，另提供引用說明。
 
@@ -70,7 +70,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 | 部分 | 責任 |
 | --- | --- |
 | ProductCard | 接收資料、呈現固定版型、圖片失敗佔位；局部 CSS。 |
-| ProductEditor | 四欄位與錯誤提示，以事件交出修改及儲存操作。 |
+| ProductEditor | 九個欄位與錯誤提示，以事件交出修改及儲存操作。 |
 | useShowroom | 持有文字草稿、已儲存快照與提示；驗證及寫入成功後才更新快照。 |
 | utils/storage | localStorage 讀寫、JSON／版本檢查、錯誤結果；不自動覆寫損壞資料。 |
 | embed | 驗證外部資料、掛載及移除共用商品卡；不匯入 Showroom 或儲存模組。 |
@@ -79,7 +79,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 - **Reusable Card Architecture 已實作：** 兩入口共用 ProductCard，獨立頁自帶資料，正式 JS／CSS 可直接引用。
 - **State Consistency Strategy 已實作：** 草稿與快照分離；寫入失敗可重試；損壞或不支援版本的內容以警告及示範值降級，不自動覆寫。
-- **Schema / Plugin Extensibility 未實作：** 四欄位直接寫在編輯器；TypeScript 型別、驗證函式與版本號不等於此 Bonus。
+- **Schema / Plugin Extensibility 未實作：** 編輯欄位由編輯器定義，數字欄位共用排版；這不等於通用 Schema／Plugin。
 
 固定一種版型、一筆商品及單頁狀態，避免引入全域狀態與通用插件架構。Showroom 使用 Tailwind utilities；卡片直接使用帶有 `mc:` 前綴的 Tailwind utilities，不包含全域 reset 或依賴宿主的主題變數。沒有 Shadow DOM，因此不保證抵抗宿主的任意全域樣式。範例圖片為自行繪製 SVG，momo 僅作版型觀察。
 

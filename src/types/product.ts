@@ -14,8 +14,13 @@ export interface ProductPreview extends Omit<Product, 'price'> {
   price: number | null
 }
 
-export interface ProductDraft extends Omit<Product, 'price'> {
+export interface ProductDraft extends Omit<Product, 'price' | 'originalPrice' | 'rating' | 'reviewCount' | 'salesCount' | 'badges'> {
   price: string
+  originalPrice?: string
+  rating?: string
+  reviewCount?: string
+  salesCount?: string
+  badges?: string
 }
 
 export enum ValidationCode {

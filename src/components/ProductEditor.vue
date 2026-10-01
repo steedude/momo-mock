@@ -2,13 +2,15 @@
 import type { ProductDraft, ValidationErrors } from '../types/product'
 import { useI18n } from 'vue-i18n'
 
-type EditableFields = Pick<ProductDraft, 'name' | 'imageUrl' | 'price' | 'promotion'>
-
 defineProps<{ draft: Readonly<ProductDraft>, errors: ValidationErrors }>()
-const emit = defineEmits<{ patch: [value: Partial<EditableFields>], save: [] }>()
+
+const emit = defineEmits<{ patch: [value: Partial<ProductDraft>], save: [] }>()
+
+const numericFields = ['originalPrice', 'rating', 'reviewCount', 'salesCount'] as const
+
 const { t } = useI18n()
 
-function update(field: keyof EditableFields, event: Event) {
+function update(field: keyof ProductDraft, event: Event) {
   emit('patch', { [field]: (event.target as HTMLInputElement | HTMLTextAreaElement).value })
 }
 </script>
@@ -52,6 +54,22 @@ function update(field: keyof EditableFields, event: Event) {
       <input id="product-promotion" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm leading-6 text-zinc-800 outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100 aria-invalid:border-rose-500" :value="draft.promotion" aria-describedby="promotion-hint" @input="update('promotion', $event)">
       <p id="promotion-hint" class="mt-1.5 text-xs leading-5 text-zinc-500">
         {{ t('editor.promotionHint') }}
+      </p>
+    </div>
+    <div class="grid gap-x-4 sm:grid-cols-2">
+      <div v-for="field in numericFields" :key="field" class="mb-5">
+        <label class="mb-2 block text-sm font-medium" :for="`product-${field}`">{{ t(`editor.${field}`) }} <span class="ml-1 text-xs font-normal text-zinc-500">{{ t('editor.optional') }}</span></label>
+        <input :id="`product-${field}`" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm leading-6 text-zinc-800 outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100 aria-invalid:border-rose-500" :value="draft[field]" :inputmode="field === 'reviewCount' || field === 'salesCount' ? 'numeric' : 'decimal'" :aria-invalid="!!errors[field]" :aria-describedby="`${field}-hint`" @input="update(field, $event)">
+        <p :id="`${field}-hint`" class="mt-1.5 text-xs leading-5" :class="errors[field] ? 'text-rose-700' : 'text-zinc-500'">
+          {{ t(`editor.${field}Hint`) }}
+        </p>
+      </div>
+    </div>
+    <div class="mb-5">
+      <label class="mb-2 block text-sm font-medium" for="product-badges">{{ t('editor.badges') }} <span class="ml-1 text-xs font-normal text-zinc-500">{{ t('editor.optional') }}</span></label>
+      <textarea id="product-badges" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm leading-6 text-zinc-800 outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-100" :value="draft.badges" rows="2" aria-describedby="badges-hint" @input="update('badges', $event)" />
+      <p id="badges-hint" class="mt-1.5 text-xs leading-5 text-zinc-500">
+        {{ t('editor.badgesHint') }}
       </p>
     </div>
     <div class="mt-6 flex flex-wrap items-center gap-4 border-t border-zinc-100 pt-5">
