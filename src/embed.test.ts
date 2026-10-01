@@ -3,7 +3,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import ProductCard from './components/ProductCard.vue'
 import { useShowroom } from './composables/useShowroom'
-import { mountProductCard } from './embed'
+import { createStandaloneHtml, mountProductCard } from './embed'
 import { i18n } from './i18n'
 import { createProductStorage } from './utils/storage'
 
@@ -69,6 +69,21 @@ describe('共用商品卡', () => {
 })
 
 describe('獨立嵌入入口', () => {
+  it('下載快照包含卡片、內嵌圖片與樣式，沒有外部程式或圖片依賴', async () => {
+    vi.stubGlobal('fetch', async () => ({ ok: true, blob: async () => new Blob(['image'], { type: 'image/png' }) }))
+    try {
+      const html = await createStandaloneHtml({ ...product, name: '</script><b>耳機</b>' })
+      const exported = new DOMParser().parseFromString(html, 'text/html')
+      expect(exported.querySelector('h2')?.textContent).toBe('</script><b>耳機</b>')
+      expect(exported.querySelector('img')?.getAttribute('src')).toMatch(/^data:image\/png;base64,/)
+      expect(exported.querySelector('style')).not.toBeNull()
+      expect(exported.querySelector('script, link, b')).toBeNull()
+      expect(exported.body.textContent).toContain('$999')
+    }
+    finally {
+      vi.unstubAllGlobals()
+    }
+  })
   it('匯出含 HTML 結束標記的商品後仍能還原資料，且不插入額外 script', () => {
     const maliciousName = '</script><script>alert("bad")</script>'
     const showroom = useShowroom()

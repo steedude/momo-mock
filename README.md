@@ -2,7 +2,7 @@
 
 momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。九個欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
 
-**已完成：** 商品卡、編輯、驗證、儲存／還原與錯誤處理、已儲存內容的 HTML 複製、正式 script／CSS 及 sample。4 個測試檔共 89 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。功能提交目前保留本機，待使用者檢視後再推送。
+**已完成：** 商品卡、九欄編輯、驗證、儲存／還原與錯誤處理、已儲存卡片的離線 HTML 下載、正式 script／CSS 及 sample。4 個測試檔共 98 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。
 
 ## 啟動與驗證
 
@@ -21,7 +21,7 @@ pnpm preview
 - Showroom：http://localhost:4173/
 - 獨立引用：http://localhost:4173/sample.html
 
-`pnpm build` 會先執行 vue-tsc，再建立兩個入口並把 sample 複製進 dist；整個 `dist/` 可部署到靜態 HTTP 伺服器。不可用 file:// 雙擊取代 HTTP。若連接埠被占用，依終端顯示網址為準。
+`pnpm build` 會先執行 vue-tsc，再建立兩個入口並把 sample 複製進 dist；整個 `dist/` 可部署到靜態 HTTP 伺服器。Showroom 與 script sample 需 HTTP；從 Showroom 下載的 `product-card.html` 則可直接雙擊離線開啟。若連接埠被占用，依終端顯示網址為準。
 
 | 指令 | 用途 |
 | --- | --- |
@@ -41,7 +41,9 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 原價、星等／評價數、商品標籤與銷量也可編輯；選填數字留空會隱藏，標籤以中英文逗號或換行分隔。所有修改需成功儲存才更新引用內容。既有存檔缺少的選填欄位保持空白，不再補入示範值，避免清空後重新出現。
 
-下方「引用商品卡」提供完整 HTML 與複製按鈕，只使用**最後一次成功儲存的快照**。尚未儲存時不產生程式碼；修改草稿或儲存失敗不改變引用內容。剪貼簿被拒絕時可在程式碼區全選手動複製。這是引用外部 JS／CSS 的完整 HTML 範例，並非把所有資源內嵌的離線單檔；部署時須提供可存取的資源網址，或將 JS／CSS 放到自己的網站。sample 自帶 599 元示範資料，另提供引用說明。
+下方「下載商品卡」只使用**最後一次成功儲存的快照**。按「下載 HTML」取得 `product-card.html`，包含同一 ProductCard 呈現的靜態 HTML、編譯後 CSS 與內嵌圖片，無外部資源依賴，可雙擊或離線開啟。尚未儲存時禁止下載；準備期間禁止重複點擊。下載需能讀取圖片（跨網域來源須允許 CORS）；連線、圖片格式或讀取失敗會提示重試，不產生缺圖檔、不變更存檔。下載後不會跟隨 Showroom 更新，需重新儲存下載。
+
+script 引用方案仍保留於 sample，使用獨立 599 元示範資料；它與下載快照都共用 ProductCard。`createStandaloneHtml` 負責內嵌圖片及輸出完整靜態頁；script 使用方式如下。
 
 選填商品欄位：`originalPrice`（有限且不小於零，僅高於售價時顯示）、`rating`（0–5）、`reviewCount`／`salesCount`（非負安全整數）、`badges`（非空白字串陣列）。缺省欄位不顯示；四個原有欄位仍為必要資料。商品名稱最多兩行，title 保留完整內容。
 

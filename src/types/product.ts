@@ -52,8 +52,9 @@ export enum SaveStatus {
   Failed = 'failed',
 }
 
-export enum CopyStatus {
+export enum DownloadStatus {
   Idle = 'idle',
-  Copied = 'copied',
+  Preparing = 'preparing',
+  Downloaded = 'downloaded',
   Failed = 'failed',
 }

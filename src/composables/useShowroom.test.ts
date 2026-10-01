@@ -1,9 +1,15 @@
-import { describe, expect, it } from 'vitest'
+// @vitest-environment jsdom
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { STORAGE_KEY } from '../configs/product'
 import { createProductStorage } from '../utils/storage'
 import { useShowroom } from './useShowroom'
 
 const product = { name: '耳機', imageUrl: 'https://example.com/a.jpg', price: 999, promotion: '優惠', originalPrice: 1299, rating: 4.8, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券', '贈品'] }
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', async () => ({ ok: true, blob: async () => new Blob(['image'], { type: 'image/png' }) }))
+})
+afterEach(() => vi.unstubAllGlobals())
 
 function memoryStorage() {
   const entries = new Map<string, string>()
@@ -14,6 +20,26 @@ function memoryStorage() {
 }
 
 describe('showroom 狀態與儲存流程', () => {
+  it('圖片下載失敗不產生缺圖檔，保留存檔且可重試', async () => {
+    const source = memoryStorage()
+    createProductStorage(() => source).save(product)
+    const showroom = useShowroom(() => source)
+    vi.stubGlobal('fetch', async () => {
+      throw new Error('CORS denied')
+    })
+    let written = false
+    expect(await showroom.downloadHtml(async () => {
+      written = true
+    })).toBe(false)
+    expect(written).toBe(false)
+    expect(showroom.downloadStatus.value).toBe('failed')
+    expect(showroom.lastSaved.value).toEqual(product)
+    vi.stubGlobal('fetch', async () => ({ ok: true, blob: async () => new Blob(['image'], { type: 'image/png' }) }))
+    expect(await showroom.downloadHtml(async () => {
+      written = true
+    })).toBe(true)
+    expect(written).toBe(true)
+  })
   it('編輯全部選填資訊後可預覽、儲存、引用，清空後重開不補回示範值', () => {
     const source = memoryStorage()
     const showroom = useShowroom(() => source)
@@ -30,19 +56,25 @@ describe('showroom 狀態與儲存流程', () => {
     expect(reopened.preview.value.badges).toBeUndefined()
     expect(reopened.dirty.value).toBe(false)
   })
-  it('複製尚未完成時儲存新版本，不會把舊版本的複製結果標成新版本已複製', async () => {
+  it('下載尚未完成時儲存新版本，不會把舊版本結果標成新版本已下載', async () => {
     const source = memoryStorage()
     createProductStorage(() => source).save(product)
     const showroom = useShowroom(() => source)
     let finish!: () => void
-    const copying = showroom.copyHtml('https://cards.example.com/', () => new Promise<void>((resolve) => {
+    let started!: () => void
+    const writing = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    const copying = showroom.downloadHtml(() => new Promise<void>((resolve) => {
       finish = resolve
+      started()
     }))
+    await writing
     showroom.patchDraft({ price: '799' })
     showroom.save()
     finish()
     await copying
-    expect(showroom.copyStatus.value).toBe('idle')
+    expect(showroom.downloadStatus.value).toBe('idle')
   })
   it('舊四欄位存檔維持原內容，選填資訊保持空白', () => {
     const legacy = { name: '舊商品', imageUrl: 'https://example.com/old.jpg', price: 999, promotion: '' }
@@ -58,47 +90,47 @@ describe('showroom 狀態與儲存流程', () => {
     expect(showroom.exportHtml('https://cards.example.com/')).not.toContain('originalPrice')
     expect(showroom.dirty.value).toBe(false)
   })
-  it('成功儲存新版本後清除先前的複製成功提示', async () => {
+  it('成功儲存新版本後清除先前的下載提示', async () => {
     const source = memoryStorage()
     createProductStorage(() => source).save(product)
     const showroom = useShowroom(() => source)
-    await showroom.copyHtml('https://cards.example.com/', async () => {})
+    await showroom.downloadHtml(async () => {})
     showroom.patchDraft({ price: '799' })
     showroom.save()
-    expect(showroom.copyStatus.value).toBe('idle')
+    expect(showroom.downloadStatus.value).toBe('idle')
     expect(showroom.exportHtml('https://cards.example.com/')).toContain('"price": 799')
   })
-  it('剪貼簿被拒絕時顯示失敗，保留可手動複製的 HTML 並可重試', async () => {
+  it('下載被拒絕時顯示失敗，保留存檔並可重試', async () => {
     const source = memoryStorage()
     createProductStorage(() => source).save(product)
     const showroom = useShowroom(() => source)
     const before = showroom.exportHtml('https://cards.example.com/')
-    expect(await showroom.copyHtml('https://cards.example.com/', async () => {
-      throw new Error('clipboard denied')
+    expect(await showroom.downloadHtml(async () => {
+      throw new Error('download denied')
     })).toBe(false)
-    expect(showroom.copyStatus.value).toBe('failed')
+    expect(showroom.downloadStatus.value).toBe('failed')
     expect(showroom.exportHtml('https://cards.example.com/')).toBe(before)
-    expect(await showroom.copyHtml('https://cards.example.com/', async () => {})).toBe(true)
-    expect(showroom.copyStatus.value).toBe('copied')
+    expect(await showroom.downloadHtml(async () => {})).toBe(true)
+    expect(showroom.downloadStatus.value).toBe('downloaded')
   })
-  it('複製最後成功儲存的內容，未儲存草稿不進入剪貼簿', async () => {
+  it('下載最後成功儲存的內容，未儲存草稿不進入檔案', async () => {
     const source = memoryStorage()
     createProductStorage(() => source).save(product)
     const showroom = useShowroom(() => source)
     showroom.patchDraft({ name: '未儲存內容', price: '799' })
     let copied = ''
-    expect(await showroom.copyHtml('https://cards.example.com/', async (text) => {
+    expect(await showroom.downloadHtml(async (text) => {
       copied = text
     })).toBe(true)
-    expect(copied).toContain('"price": 999')
+    expect(copied).toContain('$999')
     expect(copied).not.toContain('未儲存內容')
-    expect(showroom.copyStatus.value).toBe('copied')
+    expect(showroom.downloadStatus.value).toBe('downloaded')
   })
   it('尚未成功儲存時沒有可引用的 HTML，儲存後產生完整引用內容', async () => {
     const showroom = useShowroom(() => memoryStorage())
     expect(showroom.exportHtml('https://cards.example.com/demo/')).toBeNull()
     let copied: string | undefined
-    expect(await showroom.copyHtml('https://cards.example.com/demo/', async (text) => {
+    expect(await showroom.downloadHtml(async (text) => {
       copied = text
     })).toBe(false)
     expect(copied).toBeUndefined()

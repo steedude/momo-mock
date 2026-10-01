@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ProductCard from './components/ProductCard.vue'
 import ProductEditor from './components/ProductEditor.vue'
 import { useShowroom } from './composables/useShowroom'
-import { CopyStatus, SaveStatus } from './types/product'
+import { DownloadStatus, SaveStatus } from './types/product'
 
 const { t } = useI18n()
-const { draft, lastSaved, loadWarning, dirty, preview, errors, saveStatus, copyStatus, patchDraft, save, exportHtml, copyHtml } = useShowroom()
-const assetBase = new URL(import.meta.env.BASE_URL, window.location.href).href
+const { draft, lastSaved, loadWarning, dirty, preview, errors, saveStatus, downloadStatus, patchDraft, save, downloadHtml } = useShowroom()
 const sampleHref = `${import.meta.env.BASE_URL}sample.html`
-const html = computed(() => exportHtml(assetBase))
 </script>
 
 <template>
@@ -75,24 +72,20 @@ const html = computed(() => exportHtml(assetBase))
           </p>
         </div>
         <div class="flex flex-wrap gap-3">
-          <button type="button" class="cursor-pointer rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-pink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500" :disabled="!html" @click="copyHtml(assetBase)">
-            {{ t('embed.copy') }}
+          <button type="button" class="cursor-pointer rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-pink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500" :disabled="!lastSaved || downloadStatus === DownloadStatus.Preparing" @click="downloadHtml()">
+            {{ t(downloadStatus === DownloadStatus.Preparing ? 'embed.preparing' : 'embed.download') }}
           </button>
           <a :href="sampleHref" target="_blank" rel="noopener" class="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 hover:border-pink-400 hover:text-pink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500">{{ t('embed.sample') }} <span aria-hidden="true">↗</span></a>
         </div>
       </div>
-      <p v-if="!html" class="mt-5 rounded-lg bg-zinc-50 p-4 text-sm text-zinc-600">
+      <p v-if="!lastSaved" class="mt-5 rounded-lg bg-zinc-50 p-4 text-sm text-zinc-600">
         {{ t('embed.saveFirst') }}
       </p>
-      <template v-else>
-        <p v-if="dirty" class="mt-4 text-xs text-amber-800">
-          {{ t('embed.draftNotice') }}
-        </p>
-        <label for="embed-html" class="mt-5 block text-xs font-medium text-zinc-600">{{ t('embed.codeLabel') }}</label>
-        <textarea id="embed-html" :value="html" readonly rows="9" spellcheck="false" class="mt-2 block w-full resize-y rounded-lg border border-zinc-200 bg-zinc-950 p-4 font-mono text-xs leading-6 text-zinc-100 focus:outline-2 focus:outline-pink-400" />
-      </template>
-      <p v-if="copyStatus !== CopyStatus.Idle" class="mt-3 text-sm" :class="copyStatus === CopyStatus.Copied ? 'text-emerald-700' : 'text-rose-700'" :role="copyStatus === CopyStatus.Copied ? 'status' : 'alert'">
-        {{ t(`embed.${copyStatus}`) }}
+      <p v-else-if="dirty" class="mt-4 text-xs text-amber-800">
+        {{ t('embed.draftNotice') }}
+      </p>
+      <p v-if="downloadStatus === DownloadStatus.Downloaded || downloadStatus === DownloadStatus.Failed" class="mt-3 text-sm" :class="downloadStatus === DownloadStatus.Downloaded ? 'text-emerald-700' : 'text-rose-700'" :role="downloadStatus === DownloadStatus.Downloaded ? 'status' : 'alert'">
+        {{ t(`embed.${downloadStatus}`) }}
       </p>
       <p class="mt-4 text-xs leading-6 text-zinc-500">
         {{ t('embed.assetHint') }}

@@ -1,7 +1,9 @@
 import type { Product, ProductDraft, StorageIssue, ValidationErrors } from '../types/product'
 import { computed, readonly, ref } from 'vue'
 import { defaultProduct } from '../configs/product'
-import { CopyStatus, SaveStatus } from '../types/product'
+import { createStandaloneHtml } from '../embed'
+import { DownloadStatus, SaveStatus } from '../types/product'
+import { downloadHtmlFile } from '../utils/download'
 import { createEmbedHtml } from '../utils/embedHtml'
 import { parseDraft, previewProduct, toProductDraft } from '../utils/product'
 import { createProductStorage } from '../utils/storage'
@@ -17,7 +19,7 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
   const dirty = computed(() => JSON.stringify(draft.value) !== JSON.stringify(savedDraftBaseline.value))
   const preview = computed(() => previewProduct(draft.value))
   const saveStatus = ref(SaveStatus.Idle)
-  const copyStatus = ref(CopyStatus.Idle)
+  const downloadStatus = ref(DownloadStatus.Idle)
   const hasAttemptedSave = ref(false)
   const errors = computed<ValidationErrors>(() => {
     const parsed = parseDraft(draft.value)
@@ -45,7 +47,7 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
     savedDraftBaseline.value = { ...draft.value }
     loadWarning.value = null
     saveStatus.value = SaveStatus.Saved
-    copyStatus.value = CopyStatus.Idle
+    downloadStatus.value = DownloadStatus.Idle
     return true
   }
 
@@ -53,19 +55,21 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
     return lastSaved.value ? createEmbedHtml(lastSaved.value, assetBase) : null
   }
 
-  async function copyHtml(assetBase: string, writeText: (text: string) => Promise<void> = text => navigator.clipboard.writeText(text)) {
-    const html = exportHtml(assetBase)
-    if (!html)
+  async function downloadHtml(writeFile: (html: string) => Promise<void> = downloadHtmlFile) {
+    const snapshot = lastSaved.value
+    if (!snapshot || downloadStatus.value === DownloadStatus.Preparing)
       return false
+    downloadStatus.value = DownloadStatus.Preparing
     try {
-      await writeText(html)
-      if (exportHtml(assetBase) === html)
-        copyStatus.value = CopyStatus.Copied
+      const html = await createStandaloneHtml(snapshot)
+      await writeFile(html)
+      if (lastSaved.value === snapshot)
+        downloadStatus.value = DownloadStatus.Downloaded
       return true
     }
     catch {
-      if (exportHtml(assetBase) === html)
-        copyStatus.value = CopyStatus.Failed
+      if (lastSaved.value === snapshot)
+        downloadStatus.value = DownloadStatus.Failed
       return false
     }
   }
@@ -79,11 +83,11 @@ export function useShowroom(source: () => Pick<Storage, 'getItem' | 'setItem'> =
     dirty,
     errors,
     saveStatus: readonly(saveStatus),
-    copyStatus: readonly(copyStatus),
+    downloadStatus: readonly(downloadStatus),
 
     patchDraft,
     save,
     exportHtml,
-    copyHtml,
+    downloadHtml,
   }
 }
