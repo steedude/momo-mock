@@ -1,60 +1,92 @@
 # momo-mock
 
-momo B 題 Merchant Card Showroom。預計以 Vue 3 + TypeScript，在兩小時實作一種商品卡版型、一組示範資料與一個編輯區，支援四欄位即時預覽、明確儲存及獨立 HTML 的 script 引用。
+momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。四欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
 
-**目前狀態：已建立 Vue 3 + TypeScript 專案骨架與開發工具設定。** 首頁使用 i18n 管理繁體中文文案，沒有語言切換或其他語系；已完成搜尋商品卡的初步實站觀察並確認簡化直式版型，詳見規格。商品卡功能與獨立 sample HTML 尚未實作。
+**已完成：** 商品卡、編輯、驗證、儲存／還原與錯誤處理、正式 script／CSS 及 sample。4 個測試檔共 63 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。功能提交目前保留本機，待使用者檢視後再推送。
 
-## 文件與啟動
+## 啟動與驗證
 
-- [功能規格](docs/spec.md)：必做功能、架構、取捨、不做項目及操作／測試驗收。
-- [開發規則](AGENTS.md)：資料夾責任、列舉放置與依賴邊界。
-- [Human–Agent 協作紀錄](docs/agent-collaboration.md)：人的決策、修正與 Agent 貢獻。
+實測 Node.js **22.22.3**、pnpm **11.8.0**。Node 支援範圍為 `^22.22.2 || ^24.15.0 || >=26.0.0`，pnpm 版本由 packageManager 固定。
 
-本機環境：Node.js 22.22.3、pnpm 11.8.0；專案要求 Node.js >=22.22.1，pnpm 版本由 packageManager 固定。
+```sh
+pnpm install --frozen-lockfile
+pnpm test
+pnpm lint
+pnpm build
+pnpm preview
+```
+
+開啟終端顯示的網址，預設為：
+
+- Showroom：http://localhost:4173/
+- 獨立引用：http://localhost:4173/sample.html
+
+`pnpm build` 會先執行 vue-tsc，再建立兩個入口並把 sample 複製進 dist；整個 `dist/` 可部署到靜態 HTTP 伺服器。不可用 file:// 雙擊取代 HTTP。若連接埠被占用，依終端顯示網址為準。
 
 | 指令 | 用途 |
 | --- | --- |
-| `pnpm install` | 安裝依賴並透過 prepare 啟用 Husky。 |
-| `pnpm dev` | 啟動 Vite，預設 http://localhost:5173。 |
-| `pnpm lint` / `pnpm lint:fix` | 使用 antfu ESLint 檢查／自動修正。 |
-| `pnpm typecheck` | 使用 vue-tsc 檢查整個 Vue／TypeScript 專案。 |
-| `pnpm build` | 先型別檢查，再產出正式建置。 |
-| `pnpm preview` | 預覽建置產物，預設 http://localhost:4173。 |
+| `pnpm dev` | Vite 開發，預設 localhost:5173。sample 連結使用上次 build 的 dist 產物；修改商品卡後須重新 build 才會反映在 sample。 |
+| `pnpm test` / `pnpm test:watch` | Vitest 單次／監看測試。 |
+| `pnpm lint` / `pnpm lint:fix` | antfu ESLint 檢查／修正。 |
+| `pnpm typecheck` | vue-tsc 檢查 Vue、TypeScript 與測試。 |
+| `pnpm build` / `pnpm preview` | 正式建置／預覽兩頁。 |
 
-已加入 Vue 3、TypeScript 6、Vite、vue-i18n、Tailwind CSS 4、antfu ESLint、vue-tsc、lint-staged 與 Husky。TypeScript 6 符合目前 ESLint 支援範圍；未加入 Router、Pinia 或其他功能套件。
+工具包含 Vue、TypeScript、Vite、vue-i18n、Tailwind CSS 4、antfu ESLint、vue-tsc、Vitest、Vue Test Utils、jsdom、lint-staged、Husky。i18n 只有 zh-TW；不加入 Router 或 Pinia。VS Code 的專案設定提供 ESLint 存檔修正、TypeScript 路徑、Tailwind 提示與 i18n Ally 繁中預覽。
 
-i18n 只載入 `zh-TW`，文案集中在繁中語系檔，關閉其他語系 fallback。商品狀態仍依規格由 Showroom 局部管理；目前沒有需要 Pinia 的跨頁共享狀態。
+Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型別檢查。測試及正式建置依上方指令執行，不設 pre-push 或覆蓋率門檻。
 
-VS Code 工作區設定已加入：手動存檔時由 ESLint 修正、專案 TypeScript 路徑、Tailwind 提示與 i18n Ally 語系路徑。建議擴充套件列於 `.vscode/extensions.json`；開啟 TypeScript 檔案後，可透過 `TypeScript: Select TypeScript Version` 選擇工作區版本。
+## 操作與嵌入
 
-Husky 的 pre-commit 依序執行 lint-staged（只對暫存區的支援檔案執行 `eslint --fix`），再執行整個專案的 `pnpm typecheck`；任一失敗就阻止 commit。vue-tsc 不放進逐檔 lint-staged 任務，避免把檔名當成型別檢查參數。正式建置另行執行，目前不設 pre-push。
+修改名稱、HTTP(S) 圖片網址、售價與促銷文字，左側即時更新；促銷留空會隱藏。按「儲存內容」成功後，重新整理會還原這份資料。未儲存修改會捨棄，無效輸入或儲存失敗會保留草稿。圖片載入失敗顯示佔位圖，仍允許儲存有效網址。
 
-## 提交清單
+獨立頁面引用正式產物，不需建立 Vue 專案；JS 已包含 Vue 執行環境及必要文案。以下路徑以部署後的位置為準：
 
-- [ ] Source code、建置設定、依賴 lockfile、sample HTML、README 與 docs 已納入 Git。
-- [ ] 從乾淨 checkout 可依指令通過型別檢查、建置並開啟兩個頁面；sample 使用正式 JS／CSS 產物。
-- [ ] 補上 momo 參考來源、觀察日期、類型差異、所選版型及簡化說明。
-- [ ] 對照規格填寫實際驗收結果、已完成 Bonus、未完成項目與已知限制，不將計畫列為成果。
-- [ ] 保留分階段 commits 與 Agent 協作紀錄，記錄實際驗證、人的修正與對應 commit。
-- [ ] 交付指定最終 commit 的 GitHub Repo，確認評估者可存取；或交付可還原原始碼與 Git 歷史的 Zip，並實際還原驗證。
+```html
+<link rel="stylesheet" href="./embed/product-card.css">
+<div id="card"></div>
+<script src="./embed/product-card.iife.js"></script>
+<script>
+  const result = MomoCard.mountProductCard(document.getElementById('card'), {
+    name: '輕量耳機',
+    imageUrl: new URL('./headphones.svg', location.href).href,
+    price: 599,
+    promotion: '限時優惠',
+  })
+  if (!result.ok) console.error(result.errors)
+  // 成功時可使用 result.unmount() 移除；再次掛載同一容器前先移除。
+</script>
+```
 
-建議沿設計定案、商品卡與 script、編輯預覽、儲存與錯誤處理、驗收文件等里程碑提交，數量依實際完成情況調整。
+`mountProductCard(container, data)` 要求有效且專供卡片使用的 HTMLElement 容器，驗證四個商品欄位；成功回傳 `{ ok: true, unmount }`，失敗回傳 `{ ok: false, errors }`，不掛載無效資料。sample 固定傳入 599，不讀取 Showroom 的 localStorage。
 
-Codex 參與的 commit 使用共同作者署名 `Co-authored-by: Codex <noreply@openai.com>`，並在協作紀錄說明任務、貢獻、人的檢查及驗證結果。參考 [GitHub 多作者 commit](https://docs.github.com/en/pull-requests/how-tos/commit-changes/creating-a-commit-with-multiple-authors)。
+## 架構與取捨
 
-Zip 可包含完整 `.git`，或原始碼、完整 Git bundle 與還原說明；僅檔案快照或文字 log 不足以保留可檢查差異的歷史，bundle 也不包含未 commit 的檔案。參考 [Git bundle](https://git-scm.com/docs/git-bundle)。
+| 部分 | 責任 |
+| --- | --- |
+| ProductCard | 接收資料、呈現固定版型、圖片失敗佔位；局部 CSS。 |
+| ProductEditor | 四欄位與錯誤提示，以事件交出修改及儲存操作。 |
+| useShowroom | 持有文字草稿、已儲存快照與提示；驗證及寫入成功後才更新快照。 |
+| utils/storage | localStorage 讀寫、JSON／版本檢查、錯誤結果；不自動覆寫損壞資料。 |
+| embed | 驗證外部資料、掛載及移除共用商品卡；不匯入 Showroom 或儲存模組。 |
 
-## 時間與版本紀錄
+資料流為「Editor → patchDraft → 預覽 → Card」；按儲存後「驗證 → storage.save → 成功才更新快照」。售價草稿保留文字，避免把輸入中的空白轉成零。儲存 key 為 `momo-showroom:product`，格式 `{ version: 1, product }`。
 
-origin 為 `git@github.com:steedude/momo-mock.git`；本機 steedude SSH key 已通過 GitHub 帳號驗證，評估者權限尚未確認。既有準備 commits：
+- **Reusable Card Architecture 已實作：** 兩入口共用 ProductCard，獨立頁自帶資料，正式 JS／CSS 可直接引用。
+- **State Consistency Strategy 已實作：** 草稿與快照分離；寫入失敗可重試；損壞或不支援版本的內容以警告及示範值降級，不自動覆寫。
+- **Schema / Plugin Extensibility 未實作：** 四欄位直接寫在編輯器；TypeScript 型別、驗證函式與版本號不等於此 Bonus。
 
-- `8dad3b4` Initial commit：2026-10-01 12:06:53 +08:00。
-- `cc5c0f3` add skill：2026-10-01 12:23:24 +08:00。
+固定一種版型、一筆商品及單頁狀態，避免引入全域狀態與通用插件架構。卡片採 scoped CSS，不包含 Tailwind 全域 reset；沒有 Shadow DOM，因此不保證抵抗宿主的任意全域樣式。範例圖片為自行繪製 SVG，momo 僅作版型觀察。
 
-實作開始／完成時間與對應 commit 待實際執行後填寫。考題以 First Commit 計時的採認方式由出題方決定，不能假定準備 commits 一定排除；保留真實歷史及階段說明。
+限制：資料只存在同一 origin 的瀏覽器中，localhost 與 127.0.0.1、不同埠號各有自己的存檔；無雲端、跨分頁同步、草稿復原或版本遷移。多分頁最後一次成功儲存可能覆蓋另一分頁。後續先依需求加入欄位 schema，有第二種版型再做註冊，之後才考慮衝突處理及版本遷移。
 
-## 限制與後續演進
+## 文件、歷史與交付
 
-本作將「所有商品卡」解讀為作品提供的版型，目前僅一種。樣式固定，sample 自行提供資料；未儲存草稿關閉／重新整理即捨棄。多分頁沒有同步及衝突合併，後續儲存可能覆蓋另一分頁的內容。
+- [規格](docs/spec.md)：實站來源、範圍、不做項目與逐項驗收結果。
+- [開發規則](AGENTS.md)：資料夾責任、enum 與自動使用 TDD 的規則。
+- [Human–Agent 協作紀錄](docs/agent-collaboration.md)：人的決策與修正、Agent 貢獻、實際驗證及階段提交。
 
-演進順序：先補欄位描述與驗證 schema（若本次未完成），有第二種版型需求時再做版型註冊，之後依實際使用情境加入跨分頁衝突處理與版本遷移；均非本次必做承諾。
+Agent 參與的提交附 `Co-authored-by: Codex <noreply@openai.com>`；詳細內容在協作紀錄，不只共同作者署名。功能分為 `e7a4a79` 商品卡與嵌入、`50811e4` 編輯與儲存，再補驗收文件。
+
+原始準備歷史保留：`8dad3b4` 於 2026-10-01 12:06:53、`cc5c0f3` 於 12:23:24（Asia/Taipei）。功能實作於同日 13:38 開始；完成時間見協作紀錄。考題從 First Commit 起算的採認由出題方決定，不能假定準備提交一定排除。
+
+origin 為 `git@github.com:steedude/momo-mock.git`。交付可選 GitHub 指定最終 commit 並確認評估者權限，或提供含完整 `.git` 的 Zip／原始碼加完整 Git bundle。僅檔案快照或文字 log 不算 Git History；尚未推送的本機成果不能當作已交付的遠端版本。
