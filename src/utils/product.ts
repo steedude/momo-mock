@@ -13,6 +13,18 @@ export function parseProduct(input: unknown): ProductResult {
     errors.price = ValidationCode.PriceInvalid
   if (typeof promotion !== 'string')
     errors.promotion = ValidationCode.PromotionInvalid
+  for (const key of ['originalPrice', 'rating', 'reviewCount', 'salesCount'] as const) {
+    const value = product[key]
+    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0
+      || (key === 'rating' && value > 5)
+      || ((key === 'reviewCount' || key === 'salesCount') && !Number.isSafeInteger(value)))) {
+      errors[key] = ValidationCode.DetailsInvalid
+    }
+  }
+  if (product.badges !== undefined && (!Array.isArray(product.badges)
+    || !product.badges.every(badge => typeof badge === 'string' && !!badge.trim()))) {
+    errors.badges = ValidationCode.DetailsInvalid
+  }
   try {
     const url = new URL(typeof imageUrl === 'string' ? imageUrl : '')
     if (url.protocol !== 'http:' && url.protocol !== 'https:')
@@ -25,7 +37,17 @@ export function parseProduct(input: unknown): ProductResult {
     return { ok: false, errors }
   return {
     ok: true,
-    value: { name: name as string, imageUrl: imageUrl as string, price: price as number, promotion: promotion as string },
+    value: {
+      name: name as string,
+      imageUrl: imageUrl as string,
+      price: price as number,
+      promotion: promotion as string,
+      ...(product.originalPrice !== undefined && { originalPrice: product.originalPrice as number }),
+      ...(product.rating !== undefined && { rating: product.rating as number }),
+      ...(product.reviewCount !== undefined && { reviewCount: product.reviewCount as number }),
+      ...(product.salesCount !== undefined && { salesCount: product.salesCount as number }),
+      ...(product.badges !== undefined && { badges: [...product.badges as string[]] }),
+    },
   }
 }
 

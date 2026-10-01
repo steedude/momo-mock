@@ -2,7 +2,7 @@
 
 momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。四欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
 
-**已完成：** 商品卡、編輯、驗證、儲存／還原與錯誤處理、正式 script／CSS 及 sample。4 個測試檔共 63 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。功能提交目前保留本機，待使用者檢視後再推送。
+**已完成：** 商品卡、編輯、驗證、儲存／還原與錯誤處理、已儲存內容的 HTML 複製、正式 script／CSS 及 sample。4 個測試檔共 89 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。功能提交目前保留本機，待使用者檢視後再推送。
 
 ## 啟動與驗證
 
@@ -25,7 +25,7 @@ pnpm preview
 
 | 指令 | 用途 |
 | --- | --- |
-| `pnpm dev` | Vite 開發，預設 localhost:5173。sample 連結使用上次 build 的 dist 產物；修改商品卡後須重新 build 才會反映在 sample。 |
+| `pnpm dev` | Vite 開發，預設 localhost:5173；範例為 `/sample.html`，引用 `/embed/` 的上次正式建置。首次開啟及修改卡片後須先 build。開發 middleware 直接提供產物，避免 Vite 轉換快取；舊 `/dist/sample.html` 會重新導向。 |
 | `pnpm test` / `pnpm test:watch` | Vitest 單次／監看測試。 |
 | `pnpm lint` / `pnpm lint:fix` | antfu ESLint 檢查／修正。 |
 | `pnpm typecheck` | vue-tsc 檢查 Vue、TypeScript 與測試。 |
@@ -38,6 +38,12 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 ## 操作與嵌入
 
 修改名稱、HTTP(S) 圖片網址、售價與促銷文字，左側即時更新；促銷留空會隱藏。按「儲存內容」成功後，重新整理會還原這份資料。未儲存修改會捨棄，無效輸入或儲存失敗會保留草稿。圖片載入失敗顯示佔位圖，仍允許儲存有效網址。
+
+商品卡另呈現外部資料的原價、星等／評價數、服務標籤與銷量；這些在 Showroom 為固定示範資訊，不增加編輯欄位。舊存檔缺少的資訊只先補至草稿並顯示未儲存，按儲存才更新快照；不自動回寫或改掉原存檔。
+
+下方「引用商品卡」提供完整 HTML 與複製按鈕，只使用**最後一次成功儲存的快照**。尚未儲存時不產生程式碼；修改草稿或儲存失敗不改變引用內容。剪貼簿被拒絕時可在程式碼區全選手動複製。這是引用外部 JS／CSS 的完整 HTML 範例，並非把所有資源內嵌的離線單檔；部署時須提供可存取的資源網址，或將 JS／CSS 放到自己的網站。sample 自帶 599 元示範資料，另提供引用說明與可展開的掛載／移除測試。
+
+選填商品欄位：`originalPrice`（有限且不小於零，僅高於售價時顯示）、`rating`（0–5）、`reviewCount`／`salesCount`（非負安全整數）、`badges`（非空白字串陣列）。缺省欄位不顯示；四個原有欄位仍為必要資料。商品名稱最多兩行，title 保留完整內容。
 
 獨立頁面引用正式產物，不需建立 Vue 專案；JS 已包含 Vue 執行環境及必要文案。以下路徑以部署後的位置為準：
 
@@ -75,7 +81,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 - **State Consistency Strategy 已實作：** 草稿與快照分離；寫入失敗可重試；損壞或不支援版本的內容以警告及示範值降級，不自動覆寫。
 - **Schema / Plugin Extensibility 未實作：** 四欄位直接寫在編輯器；TypeScript 型別、驗證函式與版本號不等於此 Bonus。
 
-固定一種版型、一筆商品及單頁狀態，避免引入全域狀態與通用插件架構。卡片採 scoped CSS，不包含 Tailwind 全域 reset；沒有 Shadow DOM，因此不保證抵抗宿主的任意全域樣式。範例圖片為自行繪製 SVG，momo 僅作版型觀察。
+固定一種版型、一筆商品及單頁狀態，避免引入全域狀態與通用插件架構。Showroom 使用 Tailwind utilities；卡片使用 [Tailwind reference／apply](https://tailwindcss.com/docs/functions-and-directives) 編譯為 scoped CSS，不包含全域 reset 或依賴宿主的主題變數。沒有 Shadow DOM，因此不保證抵抗宿主的任意全域樣式。範例圖片為自行繪製 SVG，momo 僅作版型觀察。
 
 限制：資料只存在同一 origin 的瀏覽器中，localhost 與 127.0.0.1、不同埠號各有自己的存檔；無雲端、跨分頁同步、草稿復原或版本遷移。多分頁最後一次成功儲存可能覆蓋另一分頁。後續先依需求加入欄位 schema，有第二種版型再做註冊，之後才考慮衝突處理及版本遷移。
 

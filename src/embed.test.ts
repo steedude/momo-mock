@@ -2,6 +2,7 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 import ProductCard from './components/ProductCard.vue'
+import { useShowroom } from './composables/useShowroom'
 import { mountProductCard } from './embed'
 import { i18n } from './i18n'
 import { createProductStorage } from './utils/storage'
@@ -14,6 +15,24 @@ const product = {
 }
 
 describe('共用商品卡', () => {
+  it.each([undefined, 999, 500])('不呈現缺少或未高於售價的原價 %s', (originalPrice) => {
+    const card = mount(ProductCard, { props: { product: { ...product, originalPrice } }, global: { plugins: [i18n] } })
+    expect(card.find('del').exists()).toBe(false)
+    expect(card.find('.momo-card__reviews').exists()).toBe(false)
+    expect(card.find('.momo-card__badges').exists()).toBe(false)
+    expect(card.find('.momo-card__sales').exists()).toBe(false)
+    card.unmount()
+  })
+  it('顯示外部提供的完整名稱、原價、評價、標籤與銷量', () => {
+    const card = mount(ProductCard, { props: { product: { ...product, originalPrice: 1299, rating: 4.8, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券'] } }, global: { plugins: [i18n] } })
+    expect(card.get('h2').attributes('title')).toBe('輕巧無線耳機')
+    expect(card.get('del').text()).toBe('$1,299')
+    expect(card.get('[role="img"]').attributes('aria-label')).toBe('評分 4.8／5')
+    expect(card.text()).toContain('(168)')
+    expect(card.text()).toContain('總銷量 3,000')
+    expect(card.findAll('.momo-card__badge').map(badge => badge.text())).toEqual(['速達', '折價券'])
+    card.unmount()
+  })
   it('名稱與促銷內容中的 HTML 只顯示純文字', () => {
     const card = mount(ProductCard, { props: { product: { ...product, name: '<b>限時</b>', promotion: '<script>bad()</script>' } }, global: { plugins: [i18n] } })
     expect(card.get('h2').text()).toBe('<b>限時</b>')
@@ -50,6 +69,23 @@ describe('共用商品卡', () => {
 })
 
 describe('獨立嵌入入口', () => {
+  it('匯出含 HTML 結束標記的商品後仍能還原資料，且不插入額外 script', () => {
+    const maliciousName = '</script><script>alert("bad")</script>'
+    const showroom = useShowroom()
+    showroom.patchDraft({ ...product, price: '799', name: maliciousName })
+    showroom.save()
+    const html = showroom.exportHtml('https://cards.example.com/demo/')!
+    const exported = new DOMParser().parseFromString(html, 'text/html')
+    expect(exported.querySelectorAll('script')).toHaveLength(3)
+    const data = JSON.parse(exported.getElementById('product-data')!.textContent!)
+    const container = document.createElement('div')
+    const result = mountProductCard(container, data)
+    expect(result.ok).toBe(true)
+    expect(container.querySelector('h2')?.textContent).toBe(maliciousName)
+    expect(container.querySelector('[data-testid="price"]')?.textContent?.trim()).toBe('$799')
+    if (result.ok)
+      result.unmount()
+  })
   it('使用自己的 599 資料，不讀取 Showroom 已儲存的 799', () => {
     createProductStorage().save({ ...product, price: 799 })
     const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {

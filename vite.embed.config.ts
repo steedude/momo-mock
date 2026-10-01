@@ -1,10 +1,11 @@
 import { copyFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  plugins: [vue(), {
+  plugins: [vue(), tailwindcss(), {
     name: 'copy-sample-html',
     closeBundle() {
       copyFileSync(fileURLToPath(new URL('./sample.html', import.meta.url)), fileURLToPath(new URL('./dist/sample.html', import.meta.url)))

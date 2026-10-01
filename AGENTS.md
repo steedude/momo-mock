@@ -28,6 +28,11 @@
 - 草稿與已儲存快照由 Showroom 的 composable 管理，每個編輯實例建立自己的狀態，不在模組頂層建立共享草稿。商品卡只接收資料呈現，編輯器透過事件交出修改與操作。
 - 只有單一檔案使用的輔助型別或函式可留在原檔；有共用需求或獨立責任時再抽出。按用途命名檔案，不建立包辦所有內容的 `common.ts`，不預先新增統一轉出的 `index.ts`。
 
+## 樣式規則
+
+- Showroom、編輯器與引用區以 Tailwind utility classes 撰寫，不另建大份自訂排版 CSS。全域樣式只保留 Tailwind 入口、theme 與必要 base 設定。
+- 獨立商品卡使用 Tailwind `@reference`／`@apply` 配合 Vue scoped CSS；正式嵌入產物必須包含所需樣式，不依賴宿主的 Tailwind 主題變數，也不輸出全域 reset。獨立 HTML 的宿主示範樣式不屬於商品卡。
+
 ## TDD 觸發規則
 
 - 實作或修改商品資料驗證、儲存與還原、草稿／已儲存快照一致性、嵌入入口的驗證／掛載／移除，以及商品卡的條件呈現時，必須主動讀取並使用本機 [tdd skill](.agents/skills/tdd/SKILL.md)，不需等待使用者再次指定。

@@ -3,6 +3,11 @@ export interface Product {
   imageUrl: string
   price: number
   promotion: string
+  originalPrice?: number
+  rating?: number
+  reviewCount?: number
+  salesCount?: number
+  badges?: readonly string[]
 }
 
 export interface ProductPreview extends Omit<Product, 'price'> {
@@ -18,6 +23,7 @@ export enum ValidationCode {
   ImageInvalid = 'imageInvalid',
   PriceInvalid = 'priceInvalid',
   PromotionInvalid = 'promotionInvalid',
+  DetailsInvalid = 'detailsInvalid',
 }
 
 export type ValidationErrors = Partial<Record<keyof Product, ValidationCode>>
@@ -38,5 +44,11 @@ export enum SaveStatus {
   Idle = 'idle',
   Saved = 'saved',
   Invalid = 'invalid',
+  Failed = 'failed',
+}
+
+export enum CopyStatus {
+  Idle = 'idle',
+  Copied = 'copied',
   Failed = 'failed',
 }
