@@ -112,3 +112,18 @@
 - 驗證：瀏覽器在 `http://localhost:5173/sample.html` 確認商品名稱、價格、星等、標籤與銷量成功呈現。ESLint、vue-tsc 與正式建置通過；瀏覽器確認下方範例連結已恢復。這次未重跑功能測試。
 
 - 使用者指出按鈕仍缺少：恢復 Showroom 下方『開啟獨立範例 ↗』連結，依部署 base 路徑開啟 sample.html 新分頁；補正 README 開發模式說明。
+
+## 下載 HTML 改為內嵌 script 範例（本機試作，2026-10-01）
+
+- 使用者要求先在本地試作、不推送。沿用 script 掛載：下載檔內含正式商品卡程式、原始 CSS 與最後儲存資料，開啟時才掛載共用 ProductCard，不讀取 Showroom 存檔。
+- 商品 JSON、掛載呼叫與建置程式分段，保留圖片網址並處理 script 結束標籤轉義。移除獨立範例按鈕、固定範例頁與無用途的靜態 HTML 排版工具。
+- 使用既有 embed／Showroom seams 做 TDD：先確認單檔 script 掛載測試失敗，再實作至通過；另先確認 HTML 誤回應測試失敗，再加入 MIME 檢查。測試只替換 fetch 網路邊界，回傳實際建置商品卡，下載檔在 jsdom 的 file URL 環境執行。
+- 驗證：4 檔共 116 案例通過、ESLint 通過、vue-tsc 與正式建置通過。使用正式 bundle 產生 HTML 並執行，確認價格 790、內嵌 CSS 非空、沒有外部 script；範例約 134 KB。瀏覽器確認 Showroom 只留下下載入口。未以瀏覽器直接開啟 file URL。
+- 取捨：完整 Vue 執行環境使檔案增加至約 134 KB；產生下載時需要取得同站商品卡 JS，下載後不依賴原網站 JS／CSS。測試指令先建置嵌入產物，新增 @types/jsdom 供實際 HTML 執行測試的型別檢查。
+
+## 使用者指定改成 Web Component（本機，2026-10-01）
+
+- 前一版是一般 script 掛載，使用者明確要求真正的 Web Component。新增 web-component.ts，以 defineCustomElement 註冊 momo-product-card，自訂元素接收 product 物件並使用 Shadow DOM；仍共用 ProductCard。
+- 下載檔包含自訂元素、最後儲存資料及完整元件 JS／CSS，以 whenDefined 後設定 product。移除已不用的 mountProductCard API；保留下載介面與四個測試檔。
+- TDD：先確認 customElements 註冊／Shadow DOM 測試失敗後實作；再確認無效資料更新測試失敗，補上共用驗證及繁中文案。實際建置的元件可更新資料、移除後重接，錯誤資料不呈現商品卡。
+- 驗證：4 檔 111 個測試通過（替換舊 script API 專用案例），ESLint、vue-tsc 與正式建置通過。jsdom 執行下載 HTML，確認 Shadow DOM 商品、樣式、圖片網址及文字轉義；未用瀏覽器直接開啟 file URL。尚未提交或推送。

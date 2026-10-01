@@ -9,8 +9,8 @@ export default defineConfig({
     outDir: 'dist/embed',
     copyPublicDir: false,
     lib: {
-      entry: fileURLToPath(new URL('./src/embed.ts', import.meta.url)),
-      name: 'MomoCard',
+      entry: fileURLToPath(new URL('./src/web-component.ts', import.meta.url)),
+      name: 'MomoProductCard',
       formats: ['iife'],
       fileName: () => 'product-card.iife.js',
       cssFileName: 'product-card',

@@ -1,5 +1,6 @@
 {
   "card": {
+    "invalidProduct": "商品資料不正確，無法顯示",
     "rating": "評分 {rating}／5",
     "sales": "總銷量 {count}",
     "pendingPrice": "價格待確認",
@@ -23,15 +24,14 @@
   },
   "embed": {
     "title": "下載商品卡",
-    "description": "下載最後成功儲存的卡片，直接開啟 HTML 即可查看。",
+    "description": "下載最後儲存的商品與 Web Component 範例，開啟 HTML 即可顯示卡片。",
     "download": "下載 HTML",
     "preparing": "正在準備下載…",
     "saveFirst": "請先儲存商品內容，才能下載 HTML。",
     "draftNotice": "目前有未儲存的修改，下載仍使用最後成功儲存的內容。",
     "downloaded": "已送出下載，請開啟 product-card.html。",
     "failed": "無法產生下載檔，請重試。",
-    "sample": "開啟獨立範例 ↗",
-    "assetHint": "HTML 可直接開啟，樣式已內含；圖片使用原始網址，需要網路連線。"
+    "assetHint": "HTML 已內含商品卡程式、樣式與資料；圖片使用原始網址，需要網路連線。"
   },
   "editor": {
     "name": "商品名稱",

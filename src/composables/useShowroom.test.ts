@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { STORAGE_KEY } from '../configs/product'
 import { createProductStorage } from '../utils/storage'
 import { useShowroom } from './useShowroom'
 
 const product = { name: '耳機', imageUrl: 'https://example.com/a.jpg', price: 999, promotion: '優惠', originalPrice: 1299, rating: 4.5, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券', '贈品'] }
 
+const cardScript = readFileSync('dist/embed/product-card.iife.js', 'utf8')
+beforeEach(() => vi.stubGlobal('fetch', async (url: string) => {
+  if (!url.endsWith('/embed/product-card.iife.js'))
+    throw new Error('Only the card script may be downloaded')
+  return new Response(cardScript, { headers: { 'Content-Type': 'text/javascript' } })
+}))
 afterEach(() => vi.unstubAllGlobals())
 
 function memoryStorage() {
@@ -21,9 +28,6 @@ describe('showroom 狀態與儲存流程', () => {
     const source = memoryStorage()
     createProductStorage(() => source).save(product)
     const showroom = useShowroom(() => source)
-    vi.stubGlobal('fetch', async () => {
-      throw new Error('CORS denied')
-    })
     let written = ''
     expect(await showroom.downloadHtml(async (html) => {
       written = html
@@ -109,7 +113,7 @@ describe('showroom 狀態與儲存流程', () => {
     expect(await showroom.downloadHtml(async (text) => {
       downloaded = text
     })).toBe(true)
-    expect(downloaded).toContain('$999')
+    expect(JSON.parse(new DOMParser().parseFromString(downloaded, 'text/html').getElementById('product-data')!.textContent!).price).toBe(999)
     expect(downloaded).not.toContain('未儲存內容')
     expect(showroom.downloadStatus.value).toBe('downloaded')
   })
@@ -127,7 +131,7 @@ describe('showroom 狀態與儲存流程', () => {
       html = value
     })
     expect(html).toContain('<!doctype html>')
-    expect(html).toContain('$799')
+    expect(JSON.parse(new DOMParser().parseFromString(html, 'text/html').getElementById('product-data')!.textContent!).price).toBe(799)
     expect(html).toContain('已儲存耳機')
   })
   it('讀取被拒絕時仍可編輯示範草稿，並顯示讀取失敗', () => {

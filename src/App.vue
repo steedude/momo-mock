@@ -6,7 +6,6 @@ import { useShowroom } from './composables/useShowroom'
 import { DownloadStatus, SaveStatus } from './types/product'
 
 const { t } = useI18n()
-const sampleHref = `${import.meta.env.BASE_URL}sample.html`
 const { draft, lastSaved, loadWarning, dirty, preview, errors, saveStatus, downloadStatus, patchDraft, save, downloadHtml } = useShowroom()
 </script>
 
@@ -72,9 +71,6 @@ const { draft, lastSaved, loadWarning, dirty, preview, errors, saveStatus, downl
           </p>
         </div>
         <div class="flex flex-wrap gap-3">
-          <a :href="sampleHref" target="_blank" rel="noopener" class="rounded-lg border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500">
-            {{ t('embed.sample') }}
-          </a>
           <button type="button" class="cursor-pointer rounded-lg bg-pink-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-pink-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pink-500 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500" :disabled="!lastSaved || downloadStatus === DownloadStatus.Preparing" @click="downloadHtml()">
             {{ t(downloadStatus === DownloadStatus.Preparing ? 'embed.preparing' : 'embed.download') }}
           </button>

@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs'
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { JSDOM } from 'jsdom'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ProductCard from './components/ProductCard.vue'
-import { createStandaloneHtml, mountProductCard } from './embed'
+import { createStandaloneHtml } from './embed'
 import { i18n } from './i18n'
-import { createProductStorage } from './utils/storage'
 
 const product = {
   name: '輕巧無線耳機',
@@ -12,6 +13,10 @@ const product = {
   price: 999,
   promotion: '限時優惠',
 }
+
+const cardScript = readFileSync('dist/embed/product-card.iife.js', 'utf8')
+beforeEach(() => vi.stubGlobal('fetch', async () => new Response(cardScript, { headers: { 'Content-Type': 'text/javascript' } })))
+afterEach(() => vi.unstubAllGlobals())
 
 describe('共用商品卡', () => {
   it.each([undefined, 999, 500])('不呈現缺少或未高於售價的原價 %s', (originalPrice) => {
@@ -68,58 +73,78 @@ describe('共用商品卡', () => {
 })
 
 describe('獨立嵌入入口', () => {
-  it('下載原始碼分行縮排、移除 Vue 註解並保留文字與星等內容', async () => {
-    const html = await createStandaloneHtml({ ...product, name: '耳機 <特價>', rating: 3.5 })
-    expect(html).toContain('\n    <article')
-    expect(html).toContain('\n      <div')
-    expect(html).not.toContain('<!--')
-    const document = new DOMParser().parseFromString(html, 'text/html')
-    expect(document.querySelector('h2')?.textContent).toBe('耳機 <特價>')
-    expect(document.querySelector('.momo-card__stars-fill')?.textContent).toBe('★★★★★')
-    expect(document.querySelector('style')).not.toBeNull()
-  })
-  it('下載快照保留圖片網址與內嵌樣式，不含 Base64 或外部程式', async () => {
-    vi.stubGlobal('fetch', async () => ({ ok: true, blob: async () => new Blob(['image'], { type: 'image/png' }) }))
+  it('web Component 驗證新資料，修正後更新卡片，移除後可重新接回', async () => {
+    const html = await createStandaloneHtml(product)
+    const page = new JSDOM(html, { runScripts: 'dangerously', url: 'file:///product-card.html' })
     try {
-      const html = await createStandaloneHtml({ ...product, name: '</script><b>耳機</b>' })
-      const exported = new DOMParser().parseFromString(html, 'text/html')
-      expect(exported.querySelector('h2')?.textContent).toBe('</script><b>耳機</b>')
-      expect(exported.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl)
-      expect(exported.querySelector('style')).not.toBeNull()
-      expect(exported.querySelector('script, link, b')).toBeNull()
-      expect(exported.body.textContent).toContain('$999')
+      await new Promise(resolve => page.window.addEventListener('load', resolve, { once: true }))
+      const element = page.window.document.querySelector('momo-product-card') as HTMLElement & { product: unknown }
+      element.product = { ...product, price: -1 }
+      await new Promise(resolve => page.window.setTimeout(resolve, 0))
+      expect(element.shadowRoot?.querySelector('article')).toBeNull()
+      expect(element.shadowRoot?.textContent).toContain('商品資料不正確')
+      element.product = { ...product, name: '更新的耳機', price: 790 }
+      await new Promise(resolve => page.window.setTimeout(resolve, 0))
+      expect(element.shadowRoot?.querySelector('h2')?.textContent).toBe('更新的耳機')
+      element.remove()
+      await new Promise(resolve => page.window.setTimeout(resolve, 0))
+      page.window.document.body.append(element)
+      await new Promise(resolve => page.window.setTimeout(resolve, 0))
+      expect(element.shadowRoot?.querySelector('[data-testid="price"]')?.textContent?.trim()).toBe('$790')
     }
     finally {
-      vi.unstubAllGlobals()
+      page.window.close()
     }
   })
-  it('使用自己的 599 資料，不讀取 Showroom 已儲存的 799', () => {
-    createProductStorage().save({ ...product, price: 799 })
-    const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
-      throw new Error('embedded card must not access storage')
-    })
-    const container = document.createElement('div')
-    const result = mountProductCard(container, { ...product, price: 599 })
-    expect(result.ok).toBe(true)
-    expect(container.querySelector('[data-testid="price"]')?.textContent?.trim()).toBe('$599')
-    if (result.ok)
-      result.unmount()
-    getItem.mockRestore()
+  it('伺服器誤回 HTML 時拒絕產生無法執行的下載檔', async () => {
+    vi.stubGlobal('fetch', async () => new Response('<!doctype html><html></html>', { headers: { 'Content-Type': 'text/html' } }))
+    await expect(createStandaloneHtml(product)).rejects.toThrow()
   })
-  it.each([null, {}, { ...product, price: -1 }, { ...product, imageUrl: 'javascript:alert(1)' }])('拒絕無效商品，不改動宿主容器 %#', (input) => {
-    const container = document.createElement('div')
-    container.textContent = '宿主內容'
-    const result = mountProductCard(container, input)
-    expect(result.ok).toBe(false)
-    expect(container.textContent).toBe('宿主內容')
+  it('下載檔使用已註冊的 Web Component，Shadow DOM 內呈現完整商品與樣式', async () => {
+    const html = await createStandaloneHtml({ ...product, rating: 3.5, reviewCount: 8, salesCount: 42, badges: ['免運'] })
+    const page = new JSDOM(html, { runScripts: 'dangerously', url: 'file:///product-card.html' })
+    try {
+      await new Promise(resolve => page.window.addEventListener('load', resolve, { once: true }))
+      const exported = page.window.document
+      expect(exported.querySelector('script:not([type])')).not.toBeNull()
+      expect(exported.querySelector('script[src], link[rel="stylesheet"]')).toBeNull()
+      expect(page.window.customElements.get('momo-product-card')).toBeDefined()
+      const card = exported.querySelector('momo-product-card')?.shadowRoot
+      expect(card?.querySelector('h2')?.textContent).toBe('輕巧無線耳機')
+      expect(card?.querySelector('[data-testid="price"]')?.textContent?.trim()).toBe('$999')
+      expect(card?.querySelector('[role="img"]')?.getAttribute('aria-label')).toBe('評分 3.5／5')
+      expect(card?.textContent).toContain('總銷量 42')
+      expect(card?.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl)
+      expect(Array.from(card?.querySelectorAll('style') ?? []).map(style => style.textContent).join('')).toContain('.momo-card')
+    }
+    finally {
+      page.window.close()
+    }
   })
-  it('把外部商品掛載到指定容器，並可移除', () => {
-    const container = document.createElement('div')
-    const result = mountProductCard(container, product)
-    expect(result.ok).toBe(true)
-    expect(container.querySelector('h2')?.textContent).toBe('輕巧無線耳機')
-    if (result.ok)
-      result.unmount()
-    expect(container.childElementCount).toBe(0)
+  it('下載原始碼將商品資料分行縮排，與程式及樣式分開', async () => {
+    const html = await createStandaloneHtml({ ...product, name: '耳機 <特價>', rating: 3.5 })
+    expect(html).toContain('\n        "name":')
+    const document = new DOMParser().parseFromString(html, 'text/html')
+    expect(JSON.parse(document.getElementById('product-data')!.textContent!)).toMatchObject({ name: '耳機 <特價>', rating: 3.5 })
+    expect(document.querySelector('momo-product-card')).not.toBeNull()
+  })
+  it('下載快照保留圖片網址與內嵌樣式，不含 Base64 或外部程式', async () => {
+    const html = await createStandaloneHtml({ ...product, name: '</script><b>耳機</b>' })
+    const page = new JSDOM(html, { runScripts: 'dangerously', url: 'file:///product-card.html' })
+    try {
+      await new Promise(resolve => page.window.addEventListener('load', resolve, { once: true }))
+      const exported = page.window.document
+      const card = exported.querySelector('momo-product-card')!.shadowRoot!
+      expect(card.querySelector('h2')?.textContent).toBe('</script><b>耳機</b>')
+      expect(card.querySelector('img')?.getAttribute('src')).toBe(product.imageUrl)
+      expect(card.querySelector('style')).not.toBeNull()
+      expect(exported.querySelector('script[src], link, b')).toBeNull()
+      expect(html).not.toContain('data:image/')
+      expect(card.querySelector('b')).toBeNull()
+      expect(card.textContent).toContain('$999')
+    }
+    finally {
+      page.window.close()
+    }
   })
 })

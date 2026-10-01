@@ -280,3 +280,20 @@ sample.html                  # 自行帶入資料，引用正式 JS／CSS
 - 商品卡 script 無法載入時保留操作提示，不留下空白容器。
 
 - 恢復 Showroom 下方『開啟獨立範例 ↗』；驗收時點選應在新分頁開啟同站 sample.html 並呈現商品卡。
+
+## 下載檔改為 script 引用範例（本機試作，2026-10-01）
+
+- 依使用者確認，保留 script 方案。下載 HTML 內嵌共用商品卡 JS、CSS 與最後成功儲存的資料，開啟時呼叫 mountProductCard；不再輸出預先渲染的靜態卡片。
+- 移除獨立範例按鈕、固定資料的 public/sample.html 及不再使用的靜態 HTML 排版工具。保留開發資產服務，供下載時讀取商品卡 JS。
+- 商品資料與掛載程式放在 HTML 前段，建置產生的完整程式放在後段；圖片保持網址。取捨是下載檔較大且需要 JavaScript，但開啟後不需原網站 JS／CSS 或 localStorage。
+- 驗收：儲存價格 790 後改成 800 而不儲存，下載並開啟 HTML 應顯示 790；存成 800 後重新下載才顯示 800。
+- 驗收：在另一個瀏覽器開啟下載檔，應呈現完整商品及星等等選填資訊；圖片需連網。查看原始碼應有商品 JSON 與 mountProductCard 呼叫，無外部 JS／CSS 引用。
+- 驗收：商品名稱含 </script> 等文字時只呈現純文字；商品卡 JS 載入失敗時顯示下載失敗，保留存檔並可重試。
+
+## 改用真正的 Web Component（本機，2026-10-01）
+
+- 使用者明確指定 Web Component，取代前一節的一般 mountProductCard script 方案。下載檔使用 momo-product-card 自訂元素；以 Vue defineCustomElement 建立並註冊到 customElements，樣式內含於 Shadow DOM。
+- 最後儲存的 JSON 仍內含於 HTML；元素註冊完成後設定 product 屬性。無須外部 JS／CSS 或 localStorage；圖片保留網址，需要網路。
+- 驗收：儲存後下載並開啟，應顯示已儲存商品；原始碼有 momo-product-card 標籤，瀏覽器開發工具可見其 Shadow DOM 與 style。
+- 驗收：將元素 product 改為另一份有效物件，應更新名稱／價格；無效資料應隱藏卡片並顯示錯誤。移除後重新接回元素，應重新顯示商品。
+- 維持四個測試檔；將舊 script 掛載專用測試替換為實際建置的 Web Component 註冊、Shadow DOM、更新、驗證與生命週期測試。
