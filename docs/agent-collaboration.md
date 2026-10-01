@@ -35,3 +35,15 @@
 - 編輯器修正：使用者指出兩個 TypeScript 設定已淘汰；查核本機 VS Code 1.139.0 內建擴充套件定義，改為 `js/ts.tsdk.path` 與 `js/ts.tsdk.promptToUseWorkspaceVersion`。先前的 ESLint／JSON 檢查無法辨識 VS Code 設定是否已淘汰。
 - 編輯器精簡：使用者確認刪除額外的縮排、換行、空白清理、i18n Ally 語系偏好及 TypeScript 版本提醒；保留 ESLint、SDK 路徑、Tailwind 提示與語系路徑，以及四個擴充套件推薦。
 - 文案預覽修正：精簡後使用者回報翻譯預覽消失；補回 `i18n-ally.displayLanguage: zh-TW`，指定編輯器預覽繁中文案。外掛的行內註解預設已啟用，未額外加入該設定；實際畫面待使用者確認。
+- 目錄規則：依使用者要求新增根目錄 `AGENTS.md`，定義 configs、types、utils、composables 的責任與依賴。Agent 建議列舉定義放 types、預設值放 configs；因現有 TypeScript 設定不允許 enum 語法，採聯集型別或 as const 物件，不變更編譯設定。本次只更新規則，未實作商品卡功能。
+- 列舉決策修正：使用者確認改用原生 enum；移除 app 與 node TypeScript 設定的 `erasableSyntaxOnly`，同步修改開發規則，enum 放 types、預設值放 configs。不為示範而新增未使用的業務列舉。
+- 架構與測試討論：依使用者要求讀取 codebase-design、tdd 及其測試／mocking 指引；在既有規格加入最小架構與 4 檔、12 組測試提案，並加入實作相關功能時自動使用 tdd 的規則。測試介面仍待使用者確認；未安裝測試工具、撰寫測試或實作功能。
+- 測試範圍確認：使用者接受四個測試檔的方案，詢問 Pinia 能否取代 storage 及下一步；已將測試範圍標為確認。說明 Pinia 管理執行中狀態，持久化仍需讀寫與失敗處理；尚未改用 Pinia 或開始功能實作。
+- 儲存定案與版型研究：使用者選擇 useShowroom＋storage.ts，要求先確認 momo 卡片再實作。Agent 在瀏覽器查看首頁與耳機搜尋結果，比較一般商品卡與 mo店+ 廣告卡，於規格記錄來源、日期、差異及四欄位簡化提案；版型仍待確認，未開始功能實作。
+- 版型確認：使用者接受簡化直式卡片，詢問 Vitest 與測試先行流程；已記錄版型定案。查核 package.json，尚未加入 Vitest，未開始測試或功能實作。
+
+## 功能實作：2026-10-01
+
+- 開始：使用者明確要求「好 開始吧」。功能實作開始時間 13:38（Asia/Taipei）；此時間不取代 README 的既有 Git 歷史。
+- 商品卡與嵌入：加入 Vitest、Vue Test Utils、jsdom；依序執行失敗測試與最小實作，涵蓋四欄位、空標籤、無效售價、圖片失敗／換圖、資料驗證及掛載／移除。純文字呈現另以回歸案例確認。
+- 第一階段驗證：product 與 embed 共 31 個案例通過；正式 JS／CSS 建置成功，瀏覽器已確認 sample 掛載顯示 $599 並可移除，宿主文字與按鈕保持各自樣式。此階段尚未實作編輯與儲存。

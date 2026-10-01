@@ -38,6 +38,64 @@ Showroom 載入示範值或已儲存內容後建立草稿。編輯器修改草�
 
 Showroom 與 sample HTML 共用同一份商品卡來源，各自帶入資料。修改 Showroom 售價只影響自己的資料；修改商品卡排版後，需重新打包並更新引用檔案，兩邊才使用新排版。
 
+## 最小架構與測試範圍
+
+以下依 codebase-design 與 tdd 整理，不增加必做功能；使用者已確認四個測試檔及其測試範圍，並確認採 useShowroom＋storage.ts，不加入 Pinia 或持久化插件。尚未安裝測試工具或撰寫測試。
+
+```text
+src/
+  App.vue                     # Showroom 組裝與提示
+  components/ProductCard.vue  # 共用商品卡，局部樣式
+  components/ProductEditor.vue # 四欄位與更新／儲存事件
+  composables/useShowroom.ts  # 草稿、快照、驗證與儲存流程
+  configs/product.ts         # 示範值、儲存 key 與版本
+  types/product.ts           # 資料、草稿、結果型別與所需 enum
+  utils/product.ts           # 共用資料驗證與草稿轉換
+  utils/storage.ts           # 讀寫、格式版本檢查與錯誤結果
+  embed.ts                   # 獨立 script 掛載／移除
+sample.html                  # 自行帶入資料，引用正式 JS／CSS
+```
+
+既有 main.ts、i18n 與 Showroom 樣式保留；根目錄另以 vite.embed.config.ts 設定嵌入產物，不建立通用建置框架。上述檔案於實作時依需求建立。
+
+- **資料持有者：** useShowroom 持有 draft 與 lastSaved，公開 patchDraft、save 與供畫面讀取的草稿、預覽、錯誤及狀態。編輯器透過事件提出修改，App 接線；商品卡只收呈現資料，僅保有圖片失敗等視覺狀態。
+- **輸入中的無效值：** 草稿售價保留輸入文字；驗證通過才轉成數字寫入 Product。無效售價的預覽資料以 null 表示，由商品卡顯示佔位文字，避免空白轉成零。轉換集中在 utils/product.ts。
+- **儲存：** 公開 load／save，回傳成功、無資料或明確失敗原因，將序列化與版本細節藏在模組內。useShowroom 只在寫入成功後更新 lastSaved；無資料或讀取失敗以示範值建立草稿，讀取失敗顯示警告且不回寫。lastSaved 與初始 dirty 比較基準分開，未曾儲存的示範資料不冒充已儲存內容。
+- **測試 seam：** 儲存模組可接受提供 getItem／setItem 的來源；正式來源為瀏覽器 localStorage，測試來源可模擬拒絕讀寫。useShowroom 使用真實儲存模組，只透過這個外部依賴替換來源，不另建 repository 或依賴注入框架。
+- **嵌入：** mountProductCard(container, data) 驗證外部 unknown 資料，失敗回傳錯誤，成功回傳 unmount。使用同一份 ProductCard，不載入 Showroom、儲存或全域 Tailwind reset；卡片採局部樣式，必要繁中文案隨嵌入產物提供。
+
+資料流：編輯器事件 → patchDraft → 草稿／預覽 → 商品卡；儲存事件 → 驗證 → storage.save → 成功才更新快照。sample.html → embed.mountProductCard → 共用商品卡，資料由 sample 提供。
+
+已確認自動化測試為 **4 個測試檔、12 組行為**；參數化案例會使實際測試數高於 12，不以測試數量作為驗收目標。
+
+| 測試 seam／檔案 | 三組行為 | 對應規格 |
+| --- | --- | --- |
+| 資料驗證／utils/product.test.ts | 合法資料（含零售價、空標籤）；空白／負數／非數字／非有限售價；空白名稱、缺欄位與不合法 HTTP(S) 網址。 | AC06–08、AC19 |
+| 儲存 load／save／utils/storage.test.ts | 無資料及寫入後讀回；壞 JSON、缺欄位、無效資料及未知版本可辨識且不覆寫；讀寫例外回傳失敗並保留原內容。 | AC10–11、AC14–16 |
+| Showroom 公開狀態與操作／composables/useShowroom.test.ts | 初始還原或降級、修改立即預覽但重建仍讀到舊存檔；有效儲存後重建還原新資料並清除 dirty；無效或寫入失敗保留草稿與快照，解除失敗後可重試。 | AC01–04、AC06–08、AC10–16 |
+| 嵌入公開掛載介面與 DOM／embed.test.ts | 有效掛載、移除與無效輸入拒絕；sample 資料不受 Showroom 儲存影響；商品卡純文字呈現、空標籤隱藏、無效售價佔位及圖片失敗佔位。卡片專屬情境直接透過其 props／DOM 測試，不放寬嵌入入口的資料驗證。 | AC04–05、AC07、AC09、AC18–20 |
+
+第三組或第四組內不同結果各以獨立案例測試，不將全部分支塞入單一測試。商品卡 props／DOM 亦屬已確認 seam，與嵌入測試同檔以控制規模；不額外逐一測元件內部函式。
+
+人工與交付檢查仍包含：四欄位接線與儲存操作、實際圖片 404、兩個正式頁面的 JS／CSS 載入及資料隔離、宿主樣式不受影響、實站觀察、乾淨安裝建置與文件／Git 歷史（AC01–26 按各條件記錄）。DOM 測試不能取代正式產物的瀏覽器驗收。
+
+兩小時內先完成必要測試與主流程，測試隨功能逐步加入；不設覆蓋率門檻、不增加整套端對端平台，不測常數是否等於自己。選做 schema 只有主流程及必要驗收完成後才考慮，若要實作，再確認其測試 seam。
+
+## 實站觀察與版型提案
+
+觀察日期：2026-10-01（Asia/Taipei）。已在瀏覽器查看 [momo 首頁](https://www.momoshop.com.tw/main/Main.jsp) 與 [耳機搜尋結果](https://www.momoshop.com.tw/search/%E8%80%B3%E6%A9%9F?_isFuzzy=0&searchType=1)。本次比較限於實際看到的搜尋卡片，不宣稱完成全站卡片盤點。
+
+| 觀察類型 | 實際差異與取捨 |
+| --- | --- |
+| 一般搜尋商品卡（例如 soundcore AeroClip） | 直式、上方商品圖，下方促銷文案、截斷的商品名稱、粉紅售價；另外有評價、銷量、配送與活動標章。基本層次可直接對應既定四欄位。 |
+| 搜尋中的 mo店+ 廣告卡（例如 JV3C／ifive） | 同為直式排列，另有 Ad、店家標記、回饋與免運標示；附加資訊較多，這次不採用這些標記。 |
+
+**已確認版型：** 一般搜尋卡的簡化直式版。由上而下為方形商品圖、單行促銷文案、最多兩行商品名稱與粉紅售價；促銷文案使用既定的促銷標籤欄位，留空即隱藏。確切寬度、字級及間距於實作時依此方向調整。
+
+只保留既定四欄位；省略評價、銷量、配送／店家標章、圖片輪播、收藏、購物車與折扣計算。商品圖中的廣告字樣屬於圖片內容，不另做成可編輯欄位。參考商品僅用於觀察版型，不代表要自動帶入或串接實站商品。
+
+使用者已確認上述版型；目前尚未開始功能實作。
+
 ## 技術取捨與 Bonus
 
 | 決策 | 原因與代價 |

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>獨立商品卡範例</title>
+    <link rel="stylesheet" href="./embed/product-card.css">
+    <style>
+      body { margin: 40px; color: #263547; background: #f6f8fa; font-family: Georgia, serif; }
+      main { max-width: 860px; margin: auto; }
+      .host-controls { display: flex; gap: 12px; margin: 24px 0; }
+      button { padding: 8px 14px; border: 2px solid #263547; border-radius: 0; background: #fff; color: #263547; font: inherit; cursor: pointer; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p>獨立引用範例</p>
+      <h1>這是另一個 HTML 頁面</h1>
+      <p>這張卡片由本頁提供資料，售價固定為 $599。Showroom 儲存的內容不會改變它。</p>
+      <div class="host-controls">
+        <button id="mount" type="button">掛載商品卡</button>
+        <button id="unmount" type="button">移除商品卡</button>
+      </div>
+      <p id="status" role="status"></p>
+      <div id="product-card"></div>
+      <p>這段文字與上方方形按鈕屬於宿主頁面，應保留原本的樣式。</p>
+      <a href="./">回到 Showroom</a>
+    </main>
+    <script src="./embed/product-card.iife.js"></script>
+    <script>
+      const container = document.getElementById('product-card')
+      const status = document.getElementById('status')
+      let mounted
+      function mountCard() {
+        mounted?.unmount()
+        const result = MomoCard.mountProductCard(container, {
+          name: '【示範商品】輕量無線耳罩式耳機',
+          imageUrl: new URL('./headphones.svg', window.location.href).href,
+          price: 599,
+          promotion: '本頁獨立優惠',
+        })
+        mounted = result.ok ? result : undefined
+        status.textContent = result.ok ? '商品卡已掛載' : '商品資料不正確，無法掛載'
+      }
+      document.getElementById('mount').addEventListener('click', mountCard)
+      document.getElementById('unmount').addEventListener('click', () => {
+        mounted?.unmount()
+        mounted = undefined
+        status.textContent = '商品卡已移除'
+      })
+      mountCard()
+    </script>
+  </body>
+</html>

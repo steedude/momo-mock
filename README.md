@@ -2,11 +2,12 @@
 
 momo B 題 Merchant Card Showroom。預計以 Vue 3 + TypeScript，在兩小時實作一種商品卡版型、一組示範資料與一個編輯區，支援四欄位即時預覽、明確儲存及獨立 HTML 的 script 引用。
 
-**目前狀態：已建立 Vue 3 + TypeScript 專案骨架與開發工具設定。** 首頁使用 i18n 管理繁體中文文案，沒有語言切換或其他語系；商品卡功能、獨立 sample HTML 與實站研究尚未開始。
+**目前狀態：已建立 Vue 3 + TypeScript 專案骨架與開發工具設定。** 首頁使用 i18n 管理繁體中文文案，沒有語言切換或其他語系；已完成搜尋商品卡的初步實站觀察並確認簡化直式版型，詳見規格。商品卡功能與獨立 sample HTML 尚未實作。
 
 ## 文件與啟動
 
 - [功能規格](docs/spec.md)：必做功能、架構、取捨、不做項目及操作／測試驗收。
+- [開發規則](AGENTS.md)：資料夾責任、列舉放置與依賴邊界。
 - [Human–Agent 協作紀錄](docs/agent-collaboration.md)：人的決策、修正與 Agent 貢獻。
 
 本機環境：Node.js 22.22.3、pnpm 11.8.0；專案要求 Node.js >=22.22.1，pnpm 版本由 packageManager 固定。

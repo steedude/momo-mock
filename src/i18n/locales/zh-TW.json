@@ -1,4 +1,8 @@
 {
+  "card": {
+    "pendingPrice": "價格待確認",
+    "imageUnavailable": "暫無商品圖片"
+  },
   "app": {
     "title": "商品卡展示間",
     "description": "專案環境已就緒，商品卡功能將在下一階段實作。",
