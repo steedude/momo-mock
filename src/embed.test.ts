@@ -24,10 +24,10 @@ describe('共用商品卡', () => {
     card.unmount()
   })
   it('顯示外部提供的完整名稱、原價、評價、標籤與銷量', () => {
-    const card = mount(ProductCard, { props: { product: { ...product, originalPrice: 1299, rating: 4.8, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券'] } }, global: { plugins: [i18n] } })
+    const card = mount(ProductCard, { props: { product: { ...product, originalPrice: 1299, rating: 4.5, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券'] } }, global: { plugins: [i18n] } })
     expect(card.get('h2').attributes('title')).toBe('輕巧無線耳機')
     expect(card.get('del').text()).toBe('$1,299')
-    expect(card.get('[role="img"]').attributes('aria-label')).toBe('評分 4.8／5')
+    expect(card.get('[role="img"]').attributes('aria-label')).toBe('評分 4.5／5')
     expect(card.text()).toContain('(168)')
     expect(card.text()).toContain('總銷量 3,000')
     expect(card.findAll('.momo-card__badge').map(badge => badge.text())).toEqual(['速達', '折價券'])
@@ -85,7 +85,7 @@ describe('獨立嵌入入口', () => {
     }
   })
   it('匯出含 HTML 結束標記的商品後仍能還原資料，且不插入額外 script', () => {
-    const maliciousName = '</script><script>alert("bad")</script>'
+    const maliciousName = '</script><script>x'
     const showroom = useShowroom()
     showroom.patchDraft({ ...product, price: '799', name: maliciousName })
     showroom.save()

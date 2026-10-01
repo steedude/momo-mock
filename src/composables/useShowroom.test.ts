@@ -4,7 +4,7 @@ import { STORAGE_KEY } from '../configs/product'
 import { createProductStorage } from '../utils/storage'
 import { useShowroom } from './useShowroom'
 
-const product = { name: '耳機', imageUrl: 'https://example.com/a.jpg', price: 999, promotion: '優惠', originalPrice: 1299, rating: 4.8, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券', '贈品'] }
+const product = { name: '耳機', imageUrl: 'https://example.com/a.jpg', price: 999, promotion: '優惠', originalPrice: 1299, rating: 4.5, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券', '贈品'] }
 
 beforeEach(() => {
   vi.stubGlobal('fetch', async () => ({ ok: true, blob: async () => new Blob(['image'], { type: 'image/png' }) }))
@@ -48,7 +48,7 @@ describe('showroom 狀態與儲存流程', () => {
     expect(showroom.exportHtml('https://example.com/')).toBeNull()
     expect(showroom.save()).toBe(true)
     expect(showroom.exportHtml('https://example.com/')).toContain('"rating": 2.5')
-    expect(useShowroom(() => source).draft.value).toMatchObject({ rating: '2.5', badges: '免運, 限時' })
+    expect(useShowroom(() => source).draft.value).toMatchObject({ rating: '2.5', badges: '免運,限時' })
     showroom.patchDraft({ originalPrice: '', rating: '', reviewCount: '', salesCount: '', badges: '' })
     expect(showroom.save()).toBe(true)
     const reopened = useShowroom(() => source)

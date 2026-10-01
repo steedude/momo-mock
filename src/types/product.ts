@@ -24,6 +24,7 @@ export interface ProductDraft extends Omit<Product, 'price' | 'originalPrice' | 
 }
 
 export enum ValidationCode {
+  TextTooLong = 'textTooLong',
   NameRequired = 'nameRequired',
   ImageInvalid = 'imageInvalid',
   PriceInvalid = 'priceInvalid',

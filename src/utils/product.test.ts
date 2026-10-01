@@ -1,9 +1,43 @@
 import { describe, expect, it } from 'vitest'
-import { parseDraft, parseProduct, previewProduct } from './product'
+import { normalizeProductInput, parseDraft, parseProduct, previewProduct } from './product'
 
 const valid = { name: '無線耳機', imageUrl: 'https://example.com/a.jpg', price: 999, promotion: '優惠' }
 
 describe('商品資料驗證', () => {
+  it('接受文字與數字剛好達上限及半星選項', () => {
+    const product = { ...valid, name: '😀'.repeat(20), promotion: '字'.repeat(10), badges: ['字'.repeat(10)], price: 999999, originalPrice: 999999, reviewCount: 9999999, salesCount: 9999999, rating: 5 }
+    expect(parseProduct(product)).toEqual({ ok: true, value: product })
+    expect(parseDraft({ ...valid, price: '0', rating: '0.5' }).ok).toBe(true)
+  })
+  it('文字限制以 Unicode 字元計算，數字拒絕非法輸入並保留原值', () => {
+    expect(normalizeProductInput('name', '😀'.repeat(21), '')).toBe('😀'.repeat(20))
+    expect(normalizeProductInput('price', '1e3', '99')).toBe('99')
+    expect(normalizeProductInput('price', '-1', '99')).toBe('99')
+    expect(normalizeProductInput('price', '1000000', '99')).toBe('99')
+    expect(normalizeProductInput('price', '12.345', '12')).toBe('12')
+    expect(normalizeProductInput('price', '12.', '12')).toBe('12')
+    expect(normalizeProductInput('reviewCount', '1.2', '12')).toBe('12')
+    expect(normalizeProductInput('salesCount', 'abc', '12')).toBe('12')
+    expect(normalizeProductInput('rating', '4.8', '4.5')).toBe('4.5')
+    expect(normalizeProductInput('price', '', '12')).toBe('')
+  })
+  it.each(['1e3', '0x10', '+1', '1.234'])('儲存草稿也拒絕非標準數字格式 %s', (price) => {
+    expect(parseDraft({ ...valid, price }).ok).toBe(false)
+  })
+  it.each([
+    { name: '字'.repeat(21) },
+    { promotion: '字'.repeat(11) },
+    { imageUrl: `https://example.com/${'a'.repeat(2048)}` },
+    { badges: ['字'.repeat(11)] },
+    { price: 1000000 },
+    { price: 1.234 },
+    { originalPrice: 1000000 },
+    { reviewCount: 10000000 },
+    { salesCount: 10000000 },
+    { rating: 4.8 },
+  ])('拒絕超出統一欄位限制的資料 %#', (patch) => {
+    expect(parseProduct({ ...valid, ...patch }).ok).toBe(false)
+  })
   it.each([{ rating: '6' }, { originalPrice: '-1' }, { reviewCount: '1.5' }, { salesCount: 'abc' }])('無效選填數字保留草稿，但不出現在預覽且不能儲存 %#', (patch) => {
     const draft = { ...valid, price: '999', ...patch }
     expect(parseDraft(draft).ok).toBe(false)
@@ -36,7 +70,7 @@ describe('商品資料驗證', () => {
     expect(parseProduct({ ...valid, ...details }).ok).toBe(false)
   })
   it('保留外部提供的原價、評價、銷量與標籤，標籤不共用輸入陣列', () => {
-    const input = { ...valid, originalPrice: 1299, rating: 4.8, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券'] }
+    const input = { ...valid, originalPrice: 1299, rating: 4.5, reviewCount: 168, salesCount: 3000, badges: ['速達', '折價券'] }
     const result = parseProduct(input)
     expect(result).toEqual({ ok: true, value: input })
     input.badges.push('額外項目')

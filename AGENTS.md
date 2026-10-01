@@ -30,6 +30,8 @@
 
 ## 樣式規則
 
+- 欄位字數、數字範圍與星等選項統一放在 `src/configs/productRules.ts`；表單限制、提示與資料驗證共用，不在元件另寫一組上限。
+
 - Showroom、編輯器與引用區以 Tailwind utility classes 撰寫，不另建大份自訂排版 CSS。全域樣式只保留 Tailwind 入口、theme 與必要 base 設定。
 - 商品卡及獨立 HTML 也直接在模板寫 Tailwind utility classes，不使用 `@apply`。獨立引用樣式使用 `mc:` 前綴，正式產物包含所需 utilities，不依賴宿主的 Tailwind 主題變數，也不輸出全域 reset。
 

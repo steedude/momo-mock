@@ -1,5 +1,32 @@
 import type { Product, ProductDraft, ProductPreview, ProductResult, ValidationErrors } from '../types/product'
+import { NUMBER_RULES, RATING_OPTIONS, TEXT_LIMITS } from '../configs/productRules'
 import { ValidationCode } from '../types/product'
+
+export function textLength(value: string): number {
+  return Array.from(value).length
+}
+
+function validNumber(value: unknown, rule: { min: number, max: number, decimals: number }): value is number {
+  return typeof value === 'number' && Number.isFinite(value)
+    && value >= rule.min && value <= rule.max
+    && (rule.decimals === 0 ? /^\d+$/ : new RegExp(`^\\d+(?:\\.\\d{1,${rule.decimals}})?$`)).test(String(value))
+}
+
+function validNumericInput(value: string, field: keyof typeof NUMBER_RULES): boolean {
+  const rule = NUMBER_RULES[field]
+  const pattern = rule.decimals === 0 ? /^\d+$/ : new RegExp(`^\\d+(?:\\.\\d{0,${rule.decimals}})?$`)
+  return pattern.test(value) && Number(value) >= rule.min && Number(value) <= rule.max
+}
+
+export function normalizeProductInput(field: keyof ProductDraft, value: string, previous: string): string {
+  if (field in TEXT_LIMITS)
+    return Array.from(value).slice(0, TEXT_LIMITS[field as keyof typeof TEXT_LIMITS]).join('')
+  if (!value)
+    return ''
+  if (field === 'rating')
+    return RATING_OPTIONS.some(option => String(option) === value) ? value : previous
+  return validNumericInput(value, field as keyof typeof NUMBER_RULES) ? value : previous
+}
 
 export function parseProduct(input: unknown): ProductResult {
   const product = input && typeof input === 'object' && !Array.isArray(input)
@@ -9,21 +36,29 @@ export function parseProduct(input: unknown): ProductResult {
   const { name, imageUrl, price, promotion } = product
   if (typeof name !== 'string' || !name.trim())
     errors.name = ValidationCode.NameRequired
-  if (typeof price !== 'number' || !Number.isFinite(price) || price < 0)
+  if (!validNumber(price, NUMBER_RULES.price))
     errors.price = ValidationCode.PriceInvalid
   if (typeof promotion !== 'string')
     errors.promotion = ValidationCode.PromotionInvalid
-  for (const key of ['originalPrice', 'rating', 'reviewCount', 'salesCount'] as const) {
+  for (const key of ['name', 'imageUrl', 'promotion'] as const) {
     const value = product[key]
-    if (value !== undefined && (typeof value !== 'number' || !Number.isFinite(value) || value < 0
-      || (key === 'rating' && value > 5)
-      || ((key === 'reviewCount' || key === 'salesCount') && !Number.isSafeInteger(value)))) {
+    if (typeof value === 'string' && textLength(value) > TEXT_LIMITS[key])
+      errors[key] = ValidationCode.TextTooLong
+  }
+  for (const key of ['originalPrice', 'reviewCount', 'salesCount'] as const) {
+    const value = product[key]
+    if (value !== undefined && !validNumber(value, NUMBER_RULES[key])) {
       errors[key] = ValidationCode.DetailsInvalid
     }
   }
+  if (product.rating !== undefined && (typeof product.rating !== 'number' || !RATING_OPTIONS.includes(product.rating)))
+    errors.rating = ValidationCode.DetailsInvalid
   if (product.badges !== undefined && (!Array.isArray(product.badges)
     || !product.badges.every(badge => typeof badge === 'string' && !!badge.trim()))) {
     errors.badges = ValidationCode.DetailsInvalid
+  }
+  else if (Array.isArray(product.badges) && textLength(product.badges.join(',')) > TEXT_LIMITS.badges) {
+    errors.badges = ValidationCode.TextTooLong
   }
   try {
     const url = new URL(typeof imageUrl === 'string' ? imageUrl : '')
@@ -59,25 +94,30 @@ export function toProductDraft(product: Product): ProductDraft {
     rating: product.rating?.toString() ?? '',
     reviewCount: product.reviewCount?.toString() ?? '',
     salesCount: product.salesCount?.toString() ?? '',
-    badges: product.badges?.join(', ') ?? '',
+    badges: product.badges?.join(',') ?? '',
   }
 }
 
 function draftValues(draft: ProductDraft) {
-  const optionalNumber = (value?: string) => value?.trim() ? Number(value) : undefined
+  const optionalNumber = (field: keyof typeof NUMBER_RULES, value?: string) => value?.trim()
+    ? validNumericInput(value, field) ? Number(value) : Number.NaN
+    : undefined
   return {
     ...draft,
-    price: draft.price.trim() ? Number(draft.price) : Number.NaN,
-    originalPrice: optionalNumber(draft.originalPrice),
-    rating: optionalNumber(draft.rating),
-    reviewCount: optionalNumber(draft.reviewCount),
-    salesCount: optionalNumber(draft.salesCount),
+    price: validNumericInput(draft.price, 'price') ? Number(draft.price) : Number.NaN,
+    originalPrice: optionalNumber('originalPrice', draft.originalPrice),
+    rating: draft.rating?.trim() ? RATING_OPTIONS.some(option => String(option) === draft.rating) ? Number(draft.rating) : Number.NaN : undefined,
+    reviewCount: optionalNumber('reviewCount', draft.reviewCount),
+    salesCount: optionalNumber('salesCount', draft.salesCount),
     badges: draft.badges?.trim() ? draft.badges.split(/[,，\n]/).map(value => value.trim()).filter(Boolean) : undefined,
   }
 }
 
 export function parseDraft(draft: ProductDraft): ProductResult {
-  return parseProduct(draftValues(draft))
+  const result = parseProduct(draftValues(draft))
+  if (draft.badges && textLength(draft.badges) > TEXT_LIMITS.badges)
+    return { ok: false, errors: { ...(!result.ok && result.errors), badges: ValidationCode.TextTooLong } }
+  return result
 }
 
 export function previewProduct(draft: ProductDraft): ProductPreview {

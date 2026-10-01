@@ -2,7 +2,7 @@
 
 momo B 題 Merchant Card Showroom，以 Vue 3 + TypeScript 實作一種商品卡、一組資料及一個編輯區。九個欄位即時預覽，按下儲存才寫入 localStorage；獨立 HTML 用 script 帶入自己的商品資料，共用同一份商品卡。
 
-**已完成：** 商品卡、九欄編輯、驗證、儲存／還原與錯誤處理、已儲存卡片的離線 HTML 下載、正式 script／CSS 及 sample。4 個測試檔共 98 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。
+**已完成：** 商品卡、九欄編輯、驗證、儲存／還原與錯誤處理、已儲存卡片的離線 HTML 下載、正式 script／CSS 及 sample。4 個測試檔共 114 個案例；驗收結果見 [規格](docs/spec.md#實際驗收結果)。Schema／Plugin 選做未實作。
 
 ## 啟動與驗證
 
@@ -45,7 +45,7 @@ Husky pre-commit 依序執行暫存檔案的 ESLint 修正與整個專案的型�
 
 script 引用方案仍保留於 sample，使用獨立 599 元示範資料；它與下載快照都共用 ProductCard。`createStandaloneHtml` 負責內嵌圖片及輸出完整靜態頁；script 使用方式如下。
 
-選填商品欄位：`originalPrice`（有限且不小於零，僅高於售價時顯示）、`rating`（0–5）、`reviewCount`／`salesCount`（非負安全整數）、`badges`（非空白字串陣列）。缺省欄位不顯示；四個原有欄位仍為必要資料。商品名稱最多兩行，title 保留完整內容。
+選填商品欄位：`originalPrice`（有限且不小於零，僅高於售價時顯示）、`rating`（0–5、每 0.5 一級）、`reviewCount`／`salesCount`（非負安全整數）、`badges`（非空白字串陣列）。缺省欄位不顯示；四個原有欄位仍為必要資料。商品名稱最多兩行，title 保留完整內容。
 
 獨立頁面引用正式產物，不需建立 Vue 專案；JS 已包含 Vue 執行環境及必要文案。以下路徑以部署後的位置為準：
 
